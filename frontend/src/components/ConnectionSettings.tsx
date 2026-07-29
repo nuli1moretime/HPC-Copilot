@@ -1,0 +1,319 @@
+import { useState, useEffect } from 'react'
+
+interface Props {
+  onConnect: (config: Record<string, string>) => void
+}
+
+const STORAGE_KEY = 'hpc-copilot-config'
+
+export default function ConnectionSettings({ onConnect }: Props) {
+  const [mode, setMode] = useState<'webshell' | 'rest' | 'ssh'>('webshell')
+
+  // REST API 配置
+  const [restUrl, setRestUrl] = useState('')
+  const [restUser, setRestUser] = useState('')
+  const [restToken, setRestToken] = useState('')
+
+  // SSH 配置
+  const [sshHost, setSshHost] = useState('')
+  const [sshUser, setSshUser] = useState('')
+  const [sshPassword, setSshPassword] = useState('')
+  const [sshPort, setSshPort] = useState('22')
+
+  // Web Shell (SCOW) 配置
+  const [webshellUrl, setWebshellUrl] = useState('https://107.ustc.edu.cn')
+  const [webshellCluster, setWebshellCluster] = useState('training')
+  const [webshellLoginNode, setWebshellLoginNode] = useState('11.11.10.202')
+  const [webshellCookie, setWebshellCookie] = useState('')
+
+  // LLM 配置
+  const [llmApiBase, setLlmApiBase] = useState('https://api.llm.ustc.edu.cn/v1')
+  const [llmApiKey, setLlmApiKey] = useState('')
+  const [llmModel, setLlmModel] = useState('deepseek-v4-pro')
+
+  // 从 localStorage 加载保存的配置
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (saved) {
+        const cfg = JSON.parse(saved)
+        if (cfg.mode) setMode(cfg.mode)
+        if (cfg.rest_url) setRestUrl(cfg.rest_url)
+        if (cfg.rest_user) setRestUser(cfg.rest_user)
+        if (cfg.rest_token) setRestToken(cfg.rest_token)
+        if (cfg.ssh_host) setSshHost(cfg.ssh_host)
+        if (cfg.ssh_user) setSshUser(cfg.ssh_user)
+        if (cfg.ssh_password) setSshPassword(cfg.ssh_password)
+        if (cfg.ssh_port) setSshPort(cfg.ssh_port)
+        if (cfg.webshell_url) setWebshellUrl(cfg.webshell_url)
+        if (cfg.webshell_cluster) setWebshellCluster(cfg.webshell_cluster)
+        if (cfg.webshell_login_node) setWebshellLoginNode(cfg.webshell_login_node)
+        if (cfg.webshell_cookie) setWebshellCookie(cfg.webshell_cookie)
+        if (cfg.llm_api_base) setLlmApiBase(cfg.llm_api_base)
+        if (cfg.llm_api_key) setLlmApiKey(cfg.llm_api_key)
+        if (cfg.llm_model) setLlmModel(cfg.llm_model)
+      }
+    } catch {
+      // 忽略解析错误
+    }
+  }, [])
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const config = {
+      mode,
+      rest_url: restUrl,
+      rest_user: restUser,
+      rest_token: restToken,
+      ssh_host: sshHost,
+      ssh_user: sshUser,
+      ssh_password: sshPassword,
+      ssh_port: sshPort,
+      webshell_url: webshellUrl,
+      webshell_cluster: webshellCluster,
+      webshell_login_node: webshellLoginNode,
+      webshell_cookie: webshellCookie,
+      llm_api_base: llmApiBase,
+      llm_api_key: llmApiKey,
+      llm_model: llmModel,
+    }
+    // 保存配置到 localStorage
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(config))
+    } catch {
+      // 忽略存储错误
+    }
+    onConnect(config)
+  }
+
+  const inputClass =
+    'w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500'
+  const labelClass = 'block text-sm text-gray-400 mb-1'
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-900 p-4">
+      <div className="w-full max-w-lg bg-gray-800 rounded-xl p-6 shadow-2xl border border-gray-700">
+        <h1 className="text-2xl font-bold text-center mb-2">🖥️ HPC Copilot</h1>
+        <p className="text-center text-gray-400 text-sm mb-6">
+          连接到你的算力中心，开始智能诊断
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* 连接模式选择 */}
+          <div>
+            <label className={labelClass}>连接模式</label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setMode('webshell')}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  mode === 'webshell'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                Web Shell
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('rest')}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  mode === 'rest'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                REST API
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('ssh')}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  mode === 'ssh'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                SSH
+              </button>
+            </div>
+          </div>
+
+          {/* Web Shell (SCOW) 配置 */}
+          {mode === 'webshell' && (
+            <div className="space-y-3 p-3 bg-gray-750 rounded-lg border border-gray-600">
+              <div>
+                <label className={labelClass}>平台地址</label>
+                <input
+                  className={inputClass}
+                  placeholder="https://107.ustc.edu.cn"
+                  value={webshellUrl}
+                  onChange={(e) => setWebshellUrl(e.target.value)}
+                />
+              </div>
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className={labelClass}>集群 ID</label>
+                  <input
+                    className={inputClass}
+                    placeholder="training"
+                    value={webshellCluster}
+                    onChange={(e) => setWebshellCluster(e.target.value)}
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className={labelClass}>登录节点</label>
+                  <input
+                    className={inputClass}
+                    placeholder="11.11.10.202"
+                    value={webshellLoginNode}
+                    onChange={(e) => setWebshellLoginNode(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className={labelClass}>
+                  Cookie（从浏览器 F12 → Network → 任意请求 → Headers 中复制）
+                </label>
+                <textarea
+                  className={inputClass + ' h-20 resize-none font-mono text-xs'}
+                  placeholder="session=xxx; other=yyy"
+                  value={webshellCookie}
+                  onChange={(e) => setWebshellCookie(e.target.value)}
+                />
+              </div>
+              <p className="text-xs text-gray-500">
+                提示：在浏览器中登录算力平台后，按 F12 打开开发者工具，
+                在 Network 标签页中找到任意请求，复制 Request Headers 中的 Cookie 值。
+              </p>
+            </div>
+          )}
+
+          {/* REST API 配置 */}
+          {mode === 'rest' && (
+            <div className="space-y-3 p-3 bg-gray-750 rounded-lg border border-gray-600">
+              <div>
+                <label className={labelClass}>API 地址</label>
+                <input
+                  className={inputClass}
+                  placeholder="http://hpc.school.edu:6820"
+                  value={restUrl}
+                  onChange={(e) => setRestUrl(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>用户名</label>
+                <input
+                  className={inputClass}
+                  placeholder="你的集群用户名"
+                  value={restUser}
+                  onChange={(e) => setRestUser(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Token（可选）</label>
+                <input
+                  className={inputClass}
+                  type="password"
+                  placeholder="JWT token（如果有的话）"
+                  value={restToken}
+                  onChange={(e) => setRestToken(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* SSH 配置 */}
+          {mode === 'ssh' && (
+            <div className="space-y-3 p-3 bg-gray-750 rounded-lg border border-gray-600">
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className={labelClass}>主机地址</label>
+                  <input
+                    className={inputClass}
+                    placeholder="hpc.school.edu"
+                    value={sshHost}
+                    onChange={(e) => setSshHost(e.target.value)}
+                  />
+                </div>
+                <div className="w-20">
+                  <label className={labelClass}>端口</label>
+                  <input
+                    className={inputClass}
+                    placeholder="22"
+                    value={sshPort}
+                    onChange={(e) => setSshPort(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className={labelClass}>用户名</label>
+                <input
+                  className={inputClass}
+                  placeholder="你的集群用户名"
+                  value={sshUser}
+                  onChange={(e) => setSshUser(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>密码</label>
+                <input
+                  className={inputClass}
+                  type="password"
+                  placeholder="SSH 密码"
+                  value={sshPassword}
+                  onChange={(e) => setSshPassword(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* LLM 配置 */}
+          <details className="group" open>
+            <summary className="cursor-pointer text-sm text-gray-400 hover:text-gray-200">
+              ⚙️ 大模型配置
+            </summary>
+            <div className="space-y-3 mt-3 p-3 bg-gray-750 rounded-lg border border-gray-600">
+              <div>
+                <label className={labelClass}>API 地址</label>
+                <input
+                  className={inputClass}
+                  placeholder="https://api.llm.ustc.edu.cn/v1"
+                  value={llmApiBase}
+                  onChange={(e) => setLlmApiBase(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>API Key</label>
+                <input
+                  className={inputClass}
+                  type="password"
+                  placeholder="sk-..."
+                  value={llmApiKey}
+                  onChange={(e) => setLlmApiKey(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>模型名称</label>
+                <input
+                  className={inputClass}
+                  placeholder="deepseek-v4-pro"
+                  value={llmModel}
+                  onChange={(e) => setLlmModel(e.target.value)}
+                />
+              </div>
+            </div>
+          </details>
+
+          {/* 提交按钮 */}
+          <button
+            type="submit"
+            className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors"
+          >
+            🚀 连接并开始
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}

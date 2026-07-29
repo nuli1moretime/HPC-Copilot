@@ -1,0 +1,98 @@
+# 错误模式配置
+# 每条规则：正则匹配日志中的关键行 → 确定性判断错误类型 → 提供根因和建议命令
+# 大模型会基于这些确定性结果，生成初学者友好的完整解释。
+
+error_patterns:
+  - id: invalid_qos
+    error_type: INVALID_QOS
+    pattern: "Invalid qos specification"
+    confidence: 1.0
+    root_cause_brief: "提交作业时指定的 QoS 无效，或未指定账号允许的 QoS"
+    suggested_commands:
+      - "sacctmgr show assoc where user=$USER format=User,Account,Partition,QOS,DefaultQOS"
+      - "sbatch --qos=qos_p107-a100 ..."
+    explanation_hint: >
+      QoS（Quality of Service）决定了你能用哪些计算资源。
+      学校平台要求提交时必须显式指定你有权限的 QoS，不能省略。
+
+  - id: invalid_partition
+    error_type: INVALID_PARTITION
+    pattern: "Invalid partition specification"
+    confidence: 1.0
+    root_cause_brief: "指定的分区不存在或账号无权使用"
+    suggested_commands:
+      - "sinfo -s"
+      - "sacctmgr show assoc where user=$USER format=Partition"
+    explanation_hint: >
+      分区（Partition）是集群里的一组计算节点。
+      你需要确认分区名称拼写正确，并且你的账号有权限使用该分区。
+
+  - id: workdir_not_found
+    error_type: WORKDIR_NOT_FOUND
+    pattern: "getcwd failed|chdir failed|No such file or directory.*cwd|can't open.*working"
+    confidence: 1.0
+    root_cause_brief: "提交作业时当前工作目录已失效（被删除或不可访问）"
+    suggested_commands:
+      - 'cd "$HOME"'
+      - "pwd"
+    explanation_hint: >
+      你提交作业时所在的目录可能已经被删除或移动了。
+      Slurm 需要在一个有效的目录下启动作业。先回到主目录再重新提交。
+
+  - id: entrypoint_not_found
+    error_type: ENTRYPOINT_NOT_FOUND
+    pattern: "can't open file|No such file or directory.*\\.py|FileNotFoundError|python.*can't find"
+    confidence: 0.9
+    root_cause_brief: "作业脚本中指定的 Python 入口文件不存在或路径错误"
+    suggested_commands:
+      - "ls -la <你的脚本目录>"
+      - "cat <你的提交脚本>  # 检查 python 后面的文件路径"
+    explanation_hint: >
+      你的作业脚本里写了类似 python train.py 的命令，
+      但系统在那个目录下找不到这个文件。检查文件名拼写和路径是否正确。
+
+  - id: module_not_found
+    error_type: MODULE_NOT_FOUND
+    pattern: "module.*not found|Unable to locate a modulefile|Lmod has detected the following error"
+    confidence: 1.0
+    root_cause_brief: "请求加载的 Module 不存在或名称拼写错误"
+    suggested_commands:
+      - "module avail"
+      - "module spider <关键词>"
+    explanation_hint: >
+      Module 是集群上预装好的软件环境。
+      你需要用 module avail 查看有哪些可用模块，确认名称和版本号拼写正确。
+
+  - id: timeout
+    error_type: TIMEOUT
+    pattern: "DUE TO TIME LIMIT|CANCELLED AT .* TIME|job exceeded time|State: TIMEOUT|state.*TIMEOUT"
+    confidence: 1.0
+    root_cause_brief: "作业运行时间超过了申请的时间上限，被系统终止"
+    suggested_commands:
+      - "sacct -j <JOB_ID> --format=JobID,State,Elapsed,TimeLimit"
+    explanation_hint: >
+      你申请的时间（比如 --time=00:10:00 表示 10 分钟）不够程序跑完。
+      下次提交时把时间调大，或者先在小数据集上测试估算需要多长时间。
+
+  - id: out_of_memory
+    error_type: OUT_OF_MEMORY
+    pattern: "OOM|Out Of Memory|oom-kill|exceeded memory limit|Killed.*memory"
+    confidence: 0.9
+    root_cause_brief: "作业使用的内存超过了申请的内存上限"
+    suggested_commands:
+      - "sacct -j <JOB_ID> --format=JobID,State,MaxRSS,ReqMem"
+    explanation_hint: >
+      你的程序用的内存超过了 sbatch 里 --mem 申请的上限，被系统杀掉了。
+      下次提交时增大 --mem 的值，或者优化程序减少内存占用。
+
+  - id: program_exit_nonzero
+    error_type: PROGRAM_EXIT_NONZERO
+    pattern: "exit code [1-9]|FAILED|non-zero exit|Error in|Traceback \\(most recent call last\\)|ModuleNotFoundError|ImportError"
+    confidence: 0.8
+    root_cause_brief: "程序运行出错，返回了非零退出码"
+    suggested_commands:
+      - "cat <输出文件>  # 查看完整报错信息"
+      - "sacct -j <JOB_ID> --format=JobID,State,ExitCode"
+    explanation_hint: >
+      你的 Python 程序运行时抛出了异常。
+      查看作业输出文件里的 Traceback 信息，找到具体是哪一行代码出了什么问题。
