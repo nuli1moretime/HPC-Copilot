@@ -3,6 +3,12 @@ import type { TerminalMessage } from '../components/Terminal'
 import type { ChatMessage } from '../components/ChatPanel'
 import type { AgentAlert } from '../App'
 
+/** 作业队列小组件用：单个作业的状态快照 */
+export interface JobInfo {
+  job_id: string
+  state: string
+}
+
 interface Options {
   onAgentAlert?: (alert: AgentAlert) => void
 }
@@ -19,6 +25,8 @@ export function useWebSocket({ onAgentAlert }: Options = {}) {
     },
   ])
   const [isTyping, setIsTyping] = useState(false)
+  // 作业队列实时快照（后端监控循环推送 jobs_update 更新），驱动作业小组件
+  const [jobs, setJobs] = useState<JobInfo[]>([])
   const streamingRef = useRef(false)
   const streamingIdRef = useRef<string | null>(null)
   // 当前待填充 LLM 解释的告警卡片 id（让解释流式进卡片，而不是另起一条消息）
@@ -64,6 +72,12 @@ export function useWebSocket({ onAgentAlert }: Options = {}) {
       // 记录终端模式（webshell / command），供告警处理判断是否需要重打提示符
       if (msg.type === 'terminal_mode') {
         terminalModeRef.current = msg.data as 'command' | 'webshell'
+      }
+
+      // 作业队列快照更新（后端监控循环推送），驱动作业小组件
+      if (msg.type === 'jobs_update') {
+        const payload = msg.data as unknown as { jobs: JobInfo[] }
+        setJobs(payload.jobs || [])
       }
 
       setTerminalMessages((prev) => [...prev, msg])
@@ -323,6 +337,7 @@ export function useWebSocket({ onAgentAlert }: Options = {}) {
     terminalMessages,
     chatMessages,
     isTyping,
+    jobs,
     connectTerminal,
     connectChat,
     connectAll,

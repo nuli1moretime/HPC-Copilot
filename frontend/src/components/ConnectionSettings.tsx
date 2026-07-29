@@ -87,61 +87,56 @@ export default function ConnectionSettings({ onConnect }: Props) {
   }
 
   const inputClass =
-    'w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500'
-  const labelClass = 'block text-sm text-gray-400 mb-1'
+    'w-full bg-[var(--bg-elevated)] border border-[var(--border)] rounded-[var(--radius-md)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] outline-none transition-shadow focus:border-[var(--accent-blue-end)] focus:shadow-[0_0_0_2px_rgba(0,81,168,.12)]'
+  const labelClass = 'block text-xs text-[var(--text-secondary)] mb-1.5'
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 p-4">
-      <div className="w-full max-w-lg bg-gray-800 rounded-xl p-6 shadow-2xl border border-gray-700">
-        <h1 className="text-2xl font-bold text-center mb-2">🖥️ HPC Copilot</h1>
-        <p className="text-center text-gray-400 text-sm mb-6">
-          连接到你的算力中心，开始智能诊断
-        </p>
+    <div
+      className="min-h-screen flex items-center justify-center bg-[var(--bg-deep)] p-4"
+      style={{
+        backgroundImage:
+          'radial-gradient(ellipse 70% 50% at 50% 0%, rgba(0,81,168,.08), transparent 60%), radial-gradient(ellipse 50% 40% at 90% 100%, rgba(0,51,102,.05), transparent 60%)',
+      }}
+    >
+      <div className="w-full max-w-lg bg-[var(--bg-panel)] rounded-[var(--radius-xl)] p-7 border border-[var(--border)] shadow-2xl">
+        {/* 标题区 */}
+        <div className="flex flex-col items-center mb-6">
+          <div
+            className="w-12 h-12 rounded-[var(--radius-lg)] flex items-center justify-center font-mono-term text-xl font-semibold text-white mb-3"
+            style={{ background: 'var(--grad-blue)', boxShadow: '0 4px 20px rgba(0,81,168,.3)' }}
+          >
+            &gt;_
+          </div>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">HPC Copilot</h1>
+          <p className="text-[var(--text-muted)] text-sm mt-1">连接到你的算力中心，开始智能诊断</p>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* 连接模式选择 */}
           <div>
             <label className={labelClass}>连接模式</label>
             <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setMode('webshell')}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  mode === 'webshell'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
-              >
-                Web Shell
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode('rest')}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  mode === 'rest'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
-              >
-                REST API
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode('ssh')}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  mode === 'ssh'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
-              >
-                SSH
-              </button>
+              {(['webshell', 'rest', 'ssh'] as const).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setMode(m)}
+                  className={`flex-1 py-2 rounded-[var(--radius-md)] text-sm font-medium transition-colors border ${
+                    mode === m
+                      ? 'text-white border-[var(--accent-blue-end)]'
+                      : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] border-[var(--border)] hover:border-[var(--text-dim)]'
+                  }`}
+                  style={mode === m ? { background: 'var(--grad-blue)' } : undefined}
+                >
+                  {m === 'webshell' ? 'Web Shell' : m === 'rest' ? 'REST API' : 'SSH'}
+                </button>
+              ))}
             </div>
           </div>
 
           {/* Web Shell (SCOW) 配置 */}
           {mode === 'webshell' && (
-            <div className="space-y-3 p-3 bg-gray-750 rounded-lg border border-gray-600">
+            <div className="space-y-3 p-4 bg-[var(--bg-elevated)] rounded-[var(--radius-lg)] border border-[var(--border)]">
               <div>
                 <label className={labelClass}>平台地址</label>
                 <input
@@ -176,13 +171,13 @@ export default function ConnectionSettings({ onConnect }: Props) {
                   Cookie（从浏览器 F12 → Network → 任意请求 → Headers 中复制）
                 </label>
                 <textarea
-                  className={inputClass + ' h-20 resize-none font-mono text-xs'}
+                  className={inputClass + ' h-20 resize-none font-mono-term text-xs'}
                   placeholder="session=xxx; other=yyy"
                   value={webshellCookie}
                   onChange={(e) => setWebshellCookie(e.target.value)}
                 />
               </div>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-[var(--text-dim)] leading-relaxed">
                 提示：在浏览器中登录算力平台后，按 F12 打开开发者工具，
                 在 Network 标签页中找到任意请求，复制 Request Headers 中的 Cookie 值。
               </p>
@@ -191,7 +186,7 @@ export default function ConnectionSettings({ onConnect }: Props) {
 
           {/* REST API 配置 */}
           {mode === 'rest' && (
-            <div className="space-y-3 p-3 bg-gray-750 rounded-lg border border-gray-600">
+            <div className="space-y-3 p-4 bg-[var(--bg-elevated)] rounded-[var(--radius-lg)] border border-[var(--border)]">
               <div>
                 <label className={labelClass}>API 地址</label>
                 <input
@@ -225,7 +220,7 @@ export default function ConnectionSettings({ onConnect }: Props) {
 
           {/* SSH 配置 */}
           {mode === 'ssh' && (
-            <div className="space-y-3 p-3 bg-gray-750 rounded-lg border border-gray-600">
+            <div className="space-y-3 p-4 bg-[var(--bg-elevated)] rounded-[var(--radius-lg)] border border-[var(--border)]">
               <div className="flex gap-3">
                 <div className="flex-1">
                   <label className={labelClass}>主机地址</label>
@@ -269,11 +264,11 @@ export default function ConnectionSettings({ onConnect }: Props) {
           )}
 
           {/* LLM 配置 */}
-          <details className="group" open>
-            <summary className="cursor-pointer text-sm text-gray-400 hover:text-gray-200">
-              ⚙️ 大模型配置
+          <details className="group">
+            <summary className="cursor-pointer text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
+              ⚙ 大模型配置
             </summary>
-            <div className="space-y-3 mt-3 p-3 bg-gray-750 rounded-lg border border-gray-600">
+            <div className="space-y-3 mt-3 p-4 bg-[var(--bg-elevated)] rounded-[var(--radius-lg)] border border-[var(--border)]">
               <div>
                 <label className={labelClass}>API 地址</label>
                 <input
@@ -308,9 +303,10 @@ export default function ConnectionSettings({ onConnect }: Props) {
           {/* 提交按钮 */}
           <button
             type="submit"
-            className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors"
+            className="w-full py-3 text-white rounded-[var(--radius-lg)] font-semibold transition-all hover:-translate-y-px"
+            style={{ background: 'var(--grad-blue)', border: '1px solid var(--accent-blue-end)', boxShadow: '0 4px 20px rgba(0,81,168,.3)' }}
           >
-            🚀 连接并开始
+            连接并开始
           </button>
         </form>
       </div>

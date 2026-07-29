@@ -2,13 +2,117 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ═══════════════════════════════════════════
+   HPC Copilot 设计 Token 系统
+   左控制台（终端绿）+ 右 AI 智能（科大蓝）
+   ═══════════════════════════════════════════ */
+:root {
+  /* 底色层级 */
+  --bg-deep: #080b13;      /* 最深底色：终端标签栏、输入区底 */
+  --bg-panel: #0d111c;     /* 面板底色：左右主背景 */
+  --bg-elevated: #111a27;  /* 抬升层：气泡、卡片、输入框 */
+
+  /* 边框 */
+  --border: #1e293b;       /* 通用边框 */
+  --border-ai: #1e3a5a;    /* AI 区专属边框 */
+
+  /* 强调色 */
+  --accent-green: #34d399;        /* 终端绿：提示符、在线点、控制台操作 */
+  --accent-blue-start: #003366;   /* 科大蓝起点 */
+  --accent-blue-end: #0051a8;     /* 科大蓝终点 */
+
+  /* 语义色 */
+  --error: #f87171;
+  --warning: #fbbf24;
+  --info: #60a5fa;
+
+  /* 文字 */
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-dim: #475569;
+  --text-muted: #64748b;
+
+  /* 圆角层级 */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+
+  /* 科大蓝渐变（AI 专属） */
+  --grad-blue: linear-gradient(135deg, var(--accent-blue-start), var(--accent-blue-end));
+}
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  background-color: #0f0f1a;
-  color: #e0e0e0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  background-color: var(--bg-deep);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
 }
 
 #root {
   height: 100vh;
+}
+
+/* 等宽字体工具类（终端/代码） */
+.font-mono-term {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+}
+
+/* ─── 滚动条（深色细滚动条） ─── */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: #2a3441;
+  border-radius: 4px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: #3a4552;
+}
+
+/* ─── AI 头像脉冲光晕 ─── */
+@keyframes ai-halo-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+.ai-halo {
+  animation: ai-halo-pulse 3s ease-in-out infinite;
+}
+
+/* ─── 打字动画圆点 ─── */
+@keyframes typing-bounce {
+  0%, 80%, 100% { transform: translateY(0); opacity: 0.3; }
+  40% { transform: translateY(-7px); opacity: 1; }
+}
+.typing-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  animation: typing-bounce 1.4s infinite ease-in-out both;
+}
+.typing-dot:nth-child(1) { background: var(--accent-blue-start); animation-delay: 0s; }
+.typing-dot:nth-child(2) { background: var(--accent-blue-end); animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { background: #0066cc; animation-delay: 0.4s; }
+
+/* ─── 状态点呼吸 ─── */
+@keyframes status-breathe {
+  0%, 100% { opacity: 1; box-shadow: 0 0 4px currentColor; }
+  50% { opacity: 0.5; box-shadow: 0 0 8px currentColor; }
+}
+.status-dot-live {
+  animation: status-breathe 2s ease-in-out infinite;
+}
+
+/* ─── xterm 容器对齐设计底色 ─── */
+.xterm {
+  background: var(--bg-deep) !important;
+}
+.xterm-viewport {
+  background: var(--bg-deep) !important;
 }

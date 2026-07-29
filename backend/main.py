@@ -155,6 +155,7 @@ async def _job_monitor_loop(
     engine = DiagnosticsEngine()
     known_states: dict[str, str] = {}   # job_id -> 上次状态
     alerted: set[str] = set()           # 已告警过的作业，避免重复
+    last_pushed: dict[str, str] | None = None  # 上次推给前端的作业快照
 
     try:
         await poller.connect()
@@ -199,6 +200,24 @@ async def _job_monitor_loop(
             elif poll_count % 15 == 0:
                 # 约每 30 秒打一次心跳，证明监控还活着、没在静默空转
                 logger.info("作业监控运行中（当前队列无作业）")
+
+            # 作业队列快照有变化时推给前端，驱动"作业队列"小组件实时刷新。
+            # 只在快照变化时推送，避免每 2 秒无意义地刷消息。
+            if states != last_pushed:
+                last_pushed = dict(states)
+                try:
+                    async with send_lock:
+                        await ws.send_json({
+                            "type": "jobs_update",
+                            "data": {
+                                "jobs": [
+                                    {"job_id": jid, "state": st}
+                                    for jid, st in states.items()
+                                ]
+                            },
+                        })
+                except Exception:
+                    return  # WebSocket 已断开，退出监控
 
             for job_id, state in states.items():
                 prev = known_states.get(job_id)

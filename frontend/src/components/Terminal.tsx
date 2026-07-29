@@ -5,16 +5,27 @@ import { WebLinksAddon } from '@xterm/addon-web-links'
 import '@xterm/xterm/css/xterm.css'
 
 export interface TerminalMessage {
-  type: 'output' | 'prompt' | 'agent_alert' | 'terminal_mode'
+  type: 'output' | 'prompt' | 'agent_alert' | 'terminal_mode' | 'jobs_update'
   data: string | Record<string, unknown>
 }
 
 interface Props {
   messages: TerminalMessage[]
   onCommand: (cmd: string) => void
+  connected?: boolean
 }
 
-export default function Terminal({ messages, onCommand }: Props) {
+// 设计 token 对应的 ANSI 24-bit 颜色（终端诊断块配色与全局体系统一）
+const ANSI = {
+  green: '\x1b[38;2;52;211;153m',   // #34d399 终端绿
+  red: '\x1b[38;2;248;113;113m',    // #f87171 错误
+  yellow: '\x1b[38;2;251;191;36m',  // #fbbf24 警告
+  blue: '\x1b[38;2;96;165;250m',    // #60a5fa 信息
+  dim: '\x1b[38;2;71;85;105m',      // #475569 弱化
+  reset: '\x1b[0m',
+}
+
+export default function Terminal({ messages, onCommand, connected = false }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const xtermRef = useRef<XTerm | null>(null)
   const inputBufferRef = useRef('')
@@ -29,12 +40,14 @@ export default function Terminal({ messages, onCommand }: Props) {
     const term = new XTerm({
       cursorBlink: true,
       fontSize: 14,
+      lineHeight: 1.5,
       fontFamily: "'JetBrains Mono', 'Fira Code', 'Consolas', monospace",
       theme: {
-        background: '#1a1b26',
-        foreground: '#a9b1d6',
-        cursor: '#c0caf5',
-        selectionBackground: '#33467c',
+        background: '#080b13',
+        foreground: '#cbd5e1',
+        cursor: '#34d399',
+        cursorAccent: '#080b13',
+        selectionBackground: '#1e3a5a',
       },
     })
 
@@ -45,12 +58,60 @@ export default function Terminal({ messages, onCommand }: Props) {
     term.open(containerRef.current)
     fitAddon.fit()
 
-    // 欢迎信息
-    term.writeln('\x1b[36m╔══════════════════════════════════════╗\x1b[0m')
-    term.writeln('\x1b[36m║     🖥️  HPC Copilot Terminal       ║\x1b[0m')
-    term.writeln('\x1b[36m╚══════════════════════════════════════╝\x1b[0m')
-    term.writeln('')
-    term.writeln('\x1b[33m等待连接到算力中心...\x1b[0m')
+    // ─── 欢迎屏（Claude Code 风格：细边框 + 大号 HPC 字母 + Welcome back + 校训） ───
+    const cols = term.cols
+    const stripAnsi = (s: string) => s.replace(/\x1b\[[0-9;]*m/g, '')
+    // 显示宽度：先剥离 ANSI 转义，中日韩 / 全角字符按 2 列计
+    const dispW = (s: string) => {
+      let w = 0
+      for (const ch of stripAnsi(s)) {
+        const cp = ch.codePointAt(0) || 0
+        if ((cp >= 0x4e00 && cp <= 0x9fff) || (cp >= 0xff00 && cp <= 0xffef) || (cp >= 0x3000 && cp <= 0x303f)) w += 2
+        else w += 1
+      }
+      return w
+    }
+    const sp = (n: number) => ' '.repeat(Math.max(0, n))
+
+    // 大号 HPC 字母（ANSI Shadow 风格，每行 24 列）
+    const HPC = [
+      '██╗  ██╗██████╗  ██████╗',
+      '██║  ██║██╔══██╗██╔════╝',
+      '███████║██████╔╝██║     ',
+      '██╔══██║██╔═══╝ ██║     ',
+      '██║  ██║██║     ╚██████╗',
+      '╚═╝  ╚═╝╚═╝      ╚═════╝',
+    ]
+    // 横向渐变：绿 #34d399 → 蓝 #60a5fa（逐字符，空格跳过）
+    const hgrad = (s: string) =>
+      Array.from(s).map((ch, i, arr) => {
+        if (ch === ' ') return ch
+        const t = arr.length > 1 ? i / (arr.length - 1) : 0
+        const r = Math.round(52 + (96 - 52) * t)
+        const g = Math.round(211 + (165 - 211) * t)
+        const b = Math.round(153 + (250 - 153) * t)
+        return `\x1b[38;2;${r};${g};${b}m${ch}`
+      }).join('') + ANSI.reset
+
+    // 边框盒子：宽度自适应（最宽 58 列），整体居中
+    const boxW = Math.min(58, cols - 2)
+    const innerW = boxW - 2
+    const boxOffset = sp(Math.floor((cols - boxW) / 2))
+    // 盒子内部居中
+    const centerIn = (s: string) => sp(Math.floor((innerW - dispW(s)) / 2)) + s
+    // 盒子内容行：│ + 内容 + 补齐空格 + │
+    const boxLine = (content: string) =>
+      `${ANSI.dim}│${ANSI.reset}${content}${sp(innerW - dispW(content))}${ANSI.dim}│${ANSI.reset}`
+
+    term.writeln(`${boxOffset}${ANSI.dim}╭${'─'.repeat(innerW)}╮${ANSI.reset}`)
+    term.writeln(boxOffset + boxLine(''))
+    term.writeln(boxOffset + boxLine(`\x1b[1m${centerIn('Welcome back!')}${ANSI.reset}`))
+    term.writeln(boxOffset + boxLine(''))
+    HPC.forEach((row) => term.writeln(boxOffset + boxLine(centerIn(hgrad(row)))))
+    term.writeln(boxOffset + boxLine(''))
+    term.writeln(boxOffset + boxLine(`${ANSI.dim}${centerIn('红专并进 理实交融')}${ANSI.reset}`))
+    term.writeln(boxOffset + boxLine(''))
+    term.writeln(`${boxOffset}${ANSI.dim}╰${'─'.repeat(innerW)}╯${ANSI.reset}`)
     term.write('\r\n$ ')
 
     xtermRef.current = term
@@ -93,20 +154,16 @@ export default function Terminal({ messages, onCommand }: Props) {
     })
 
     // ─── 剪贴板支持 ───────────────────────────────────────
-    // 粘贴函数：从系统剪贴板读取内容，直接写入输入缓冲和终端显示
     const pasteFromClipboard = async () => {
       try {
         const text = await navigator.clipboard.readText()
         if (text) {
-          // 只取第一行（终端命令逐行执行）
           const lines = text.split('\n')
           for (let i = 0; i < lines.length; i++) {
             const line = lines[i].replace(/\r$/, '')
             if (i > 0 && line.trim()) {
-              // 多行内容：前面的行直接提交执行
               inputBufferRef.current += line
               term.write(line)
-              // 触发回车执行
               const cmd = inputBufferRef.current
               term.write('\r\n')
               if (cmd.trim()) onCommand(cmd)
@@ -130,7 +187,7 @@ export default function Terminal({ messages, onCommand }: Props) {
       if (event.ctrlKey && event.key.toLowerCase() === 'v') {
         event.preventDefault()
         pasteFromClipboard()
-        return false // 不让 xterm 处理
+        return false
       }
 
       // Ctrl+C：有选中文本时复制，否则放行（发送中断信号）
@@ -141,10 +198,10 @@ export default function Terminal({ messages, onCommand }: Props) {
           navigator.clipboard.writeText(selection).catch(() => {})
           return false
         }
-        return true // 无选中：让 xterm 发送 \x03
+        return true
       }
 
-      return true // 其他按键正常处理
+      return true
     })
 
     // 右键粘贴
@@ -156,12 +213,13 @@ export default function Terminal({ messages, onCommand }: Props) {
       })
     }
 
-    // 窗口大小变化时自适应
-    const handleResize = () => fitAddon.fit()
-    window.addEventListener('resize', handleResize)
+    // 容器尺寸变化时自适应：窗口缩放、拖动分隔条、展开/收起侧边栏
+    // 都会改变终端可用宽度，ResizeObserver 比 window.resize 覆盖更全
+    const resizeObserver = new ResizeObserver(() => fitAddon.fit())
+    resizeObserver.observe(containerRef.current)
 
     return () => {
-      window.removeEventListener('resize', handleResize)
+      resizeObserver.disconnect()
       term.dispose()
     }
   }, [onCommand])
@@ -177,7 +235,6 @@ export default function Terminal({ messages, onCommand }: Props) {
 
     for (const msg of newMessages) {
       if (msg.type === 'terminal_mode') {
-        // 后端告知终端模式
         modeRef.current = msg.data as 'command' | 'webshell'
       } else if (msg.type === 'output') {
         const text = (msg.data as string).replace(/\n/g, '\r\n')
@@ -185,19 +242,47 @@ export default function Terminal({ messages, onCommand }: Props) {
       } else if (msg.type === 'prompt') {
         term.write('\r\n$ ')
       } else if (msg.type === 'agent_alert') {
+        // 内嵌诊断块：ANSI 文本混排在终端流中，配色对齐全局 token
         const alert = msg.data as Record<string, unknown>
         term.write('\r\n')
-        term.write('\x1b[31m┌─── ⚠️  Agent 检测到错误 ───┐\x1b[0m\r\n')
-        term.write(`\x1b[31m│ 类型: ${alert.error_type}\x1b[0m\r\n`)
-        term.write(`\x1b[33m│ 原因: ${alert.root_cause}\x1b[0m\r\n`)
-        term.write('\x1b[31m└─────────────────────────────┘\x1b[0m\r\n')
-        term.write('\x1b[36m→ 详细解释已推送到右侧对话面板\x1b[0m\r\n')
+        term.write(`${ANSI.red}┌─── ⚠ Agent 检测到错误 ───────────────┐${ANSI.reset}\r\n`)
+        term.write(`${ANSI.red}│ 类型: ${alert.error_type}${ANSI.reset}\r\n`)
+        term.write(`${ANSI.yellow}│ 原因: ${alert.root_cause}${ANSI.reset}\r\n`)
+        term.write(`${ANSI.red}└──────────────────────────────────────┘${ANSI.reset}\r\n`)
+        term.write(`${ANSI.blue}→ 详细解释已推送到右侧对话面板${ANSI.reset}\r\n`)
         if (modeRef.current === 'command') {
           term.write('$ ')
         }
       }
+      // jobs_update 由 useWebSocket 处理（驱动右侧作业小组件），终端不渲染
     }
   }, [messages])
 
-  return <div ref={containerRef} className="h-full w-full" />
+  return (
+    <div className="flex flex-col h-full bg-[var(--bg-panel)]">
+      {/* ─── 终端内容区（内边距避免文字贴边；xterm 挂载元素本身不加 padding，
+             否则 FitAddon 会按含 padding 的尺寸计算列数导致换行错位） ─── */}
+      <div className="flex-1 min-h-0 bg-[var(--bg-deep)] px-3.5 py-2.5">
+        <div ref={containerRef} className="h-full w-full" />
+      </div>
+
+      {/* ─── 底部状态条（VS Code 风格） ─── */}
+      <div className="flex items-center gap-4 h-7 flex-shrink-0 px-3 bg-[var(--bg-deep)] border-t border-[var(--border)] font-mono-term text-[11px] text-[var(--text-muted)]">
+        <span>
+          分区 <span className="text-[var(--text-secondary)]">P107-A100</span>
+        </span>
+        <span>
+          QoS <span className="text-[var(--text-secondary)]">qos_p107-a100</span>
+        </span>
+        <span className="ml-auto flex items-center gap-1.5">
+          <span
+            className={`w-1.5 h-1.5 rounded-full ${connected ? 'bg-[var(--accent-green)] status-dot-live text-[var(--accent-green)]' : 'bg-[var(--text-dim)]'}`}
+          />
+          <span className={connected ? 'text-[var(--accent-green)]' : ''}>
+            {connected ? 'Agent 监控中' : '未连接'}
+          </span>
+        </span>
+      </div>
+    </div>
+  )
 }
