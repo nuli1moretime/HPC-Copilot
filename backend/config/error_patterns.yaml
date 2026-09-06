@@ -17,7 +17,7 @@ error_patterns:
 
   - id: invalid_partition
     error_type: INVALID_PARTITION
-    pattern: "Invalid partition specification"
+    pattern: "Invalid partition specification|Invalid partition name specified|invalid partition specified"
     confidence: 1.0
     root_cause_brief: "指定的分区不存在或账号无权使用"
     suggested_commands:
@@ -26,6 +26,30 @@ error_patterns:
     explanation_hint: >
       分区（Partition）是集群里的一组计算节点。
       你需要确认分区名称拼写正确，并且你的账号有权限使用该分区。
+
+  - id: invalid_time
+    error_type: INVALID_TIME
+    pattern: "Invalid time limit specification|invalid.*--time|Invalid time value"
+    confidence: 1.0
+    root_cause_brief: "SBATCH 的运行时长格式不被 Slurm 接受"
+    suggested_commands:
+      - "grep -n -- '--time' <你的提交脚本>"
+      - "sbatch --time=00:30:00 <你的提交脚本>"
+    explanation_hint: >
+      Slurm 常用的时间格式是 HH:MM:SS，例如 00:30:00 表示30分钟。
+      不要使用 2h、2days 等自然语言格式。
+
+  - id: account_issue
+    error_type: ACCOUNT_ISSUE
+    pattern: "Invalid account specification|Association not found|not associated with the requested account|Access denied for account"
+    confidence: 1.0
+    root_cause_brief: "指定的计费账号无效，或当前用户没有该账号的作业权限"
+    suggested_commands:
+      - "sacctmgr show assoc where user=$USER format=User,Account,Partition,QOS"
+      - "grep -n -- '--account' <你的提交脚本>"
+    explanation_hint: >
+      Slurm 的 Account 是用户与资源权限的关联，不是登录用户名。
+      应先查看自己可用的关联，再删除或改正脚本中的 --account。
 
   - id: workdir_not_found
     error_type: WORKDIR_NOT_FOUND
@@ -41,7 +65,7 @@ error_patterns:
 
   - id: entrypoint_not_found
     error_type: ENTRYPOINT_NOT_FOUND
-    pattern: "can't open file|No such file or directory.*\\.py|FileNotFoundError|python.*can't find"
+    pattern: "can't open file|No such file or directory.*\\.py|FileNotFoundError|python.*can't find|\\./[^\\s:]+: No such file or directory"
     confidence: 0.9
     root_cause_brief: "作业脚本中指定的 Python 入口文件不存在或路径错误"
     suggested_commands:
@@ -50,6 +74,107 @@ error_patterns:
     explanation_hint: >
       你的作业脚本里写了类似 python train.py 的命令，
       但系统在那个目录下找不到这个文件。检查文件名拼写和路径是否正确。
+
+  - id: conda_env
+    error_type: CONDA_ENV
+    pattern: "conda: command not found|CommandNotFoundError:.*conda activate|EnvironmentNameNotFound|Could not find conda environment"
+    confidence: 1.0
+    root_cause_brief: "批处理环境没有初始化 Conda，或脚本指定的环境不存在"
+    suggested_commands:
+      - "module avail 2>&1 | grep -i conda"
+      - "source <conda安装目录>/etc/profile.d/conda.sh"
+      - "conda env list"
+    explanation_hint: >
+      批处理作业不会自动继承交互终端中的 Conda 初始化。
+      需要先加载平台的 Conda 模块并 source conda.sh，再激活确实存在的环境。
+
+  - id: disk_quota
+    error_type: DISK_QUOTA
+    pattern: "Disk quota exceeded|No space left on device|Errno 122"
+    confidence: 1.0
+    root_cause_brief: "用户磁盘配额或所在文件系统空间不足，程序无法继续写入"
+    suggested_commands:
+      - "quota -s 2>/dev/null || true"
+      - 'df -h "$HOME"'
+      - 'du -sh "$HOME"/* 2>/dev/null | sort -h | tail'
+    explanation_hint: >
+      这不是计算内存不足，而是文件系统无法继续写入。
+      应先查看配额和大文件，再有选择地清理缓存、旧日志或无用检查点。
+
+  - id: permission_denied
+    error_type: PERMISSION_DENIED
+    pattern: "Permission denied|PermissionError: \\[Errno 13\\]|Operation not permitted"
+    confidence: 1.0
+    root_cause_brief: "当前用户没有读取、写入或执行目标路径的权限"
+    suggested_commands:
+      - "ls -ld <目标目录>"
+      - "ls -l <目标文件>"
+      - 'pwd && id'
+    explanation_hint: >
+      先确认文件所有者、目录权限和当前身份。不要用 sudo 绕过平台权限，
+      应把输出改到自己的工作目录，或联系目录管理员授权。
+
+  - id: gpu_oom
+    error_type: GPU_OOM
+    pattern: "CUDA out of memory|cudaErrorMemoryAllocation|ResourceExhaustedError[\\s\\S]{0,200}GPU|OOM when allocating tensor"
+    confidence: 1.0
+    root_cause_brief: "程序申请的GPU显存超过当前可用显存"
+    suggested_commands:
+      - "nvidia-smi"
+      - "减小 batch size 后重新提交作业"
+    explanation_hint: >
+      GPU显存不足与主机内存不足不同。优先减小batch size、输入尺寸或模型规模，
+      并确认同一GPU上是否还有其他进程占用显存。
+
+  - id: cuda_device
+    error_type: CUDA_DEVICE
+    pattern: "not compiled with CUDA enabled|No CUDA-capable device|NVIDIA driver.*too old|CUDA-capable devices are busy or unavailable|cudaErrorDevicesUnavailable"
+    confidence: 0.95
+    root_cause_brief: "程序无法使用CUDA设备，可能未申请GPU、软件版本不匹配或设备暂不可用"
+    suggested_commands:
+      - "nvidia-smi"
+      - "echo $CUDA_VISIBLE_DEVICES"
+      - "module avail 2>&1 | grep -i cuda"
+    explanation_hint: >
+      先确认作业确实申请了GPU，再检查驱动、CUDA模块和程序安装版本是否兼容。
+      不要在登录节点上用是否能看到GPU来判断计算节点环境。
+
+  - id: node_fail
+    error_type: NODE_FAIL
+    pattern: "\\bNODE_FAIL\\b|Node failure|node failure|unexpectedly rebooted|terminated due to node failure|Detected batch step failure"
+    confidence: 1.0
+    root_cause_brief: "计算节点发生故障或重启，作业被调度系统终止"
+    suggested_commands:
+      - "scontrol show job <JOB_ID>"
+      - "cat slurm-<JOB_ID>.out"
+      - "保留日志并重新提交；反复发生时联系平台管理员"
+    explanation_hint: >
+      节点故障通常不是用户代码本身导致的。保留作业号和日志后可以重新提交；
+      如果同一节点反复出现问题，应把信息交给平台管理员。
+
+  - id: preempted
+    error_type: PREEMPTED
+    pattern: "\\bPREEMPTED\\b|preempted by higher priority|job was preempted"
+    confidence: 1.0
+    root_cause_brief: "作业因调度优先级被更高优先级任务抢占"
+    suggested_commands:
+      - "scontrol show job <JOB_ID>"
+      - "检查点续跑后重新提交作业"
+    explanation_hint: >
+      抢占是调度策略，不等于程序报错。长作业应定期保存检查点，重新提交后从检查点继续。
+
+  - id: dependency
+    error_type: DEPENDENCY
+    pattern: "Dependency failed|cancelled due to dependency|Dependency satisfied.*completed with error|Invalid job dependency"
+    confidence: 1.0
+    root_cause_brief: "作业依赖的前序任务失败、被取消或依赖编号无效"
+    suggested_commands:
+      - "scontrol show job <JOB_ID>"
+      - "squeue -j <依赖作业ID>"
+      - "grep -n -- '--dependency' <你的提交脚本>"
+    explanation_hint: >
+      使用 --dependency 提交的作业只有在前序条件满足后才会运行。
+      应先检查前序作业状态和依赖类型，再决定修复前序任务或重新建立依赖。
 
   - id: module_not_found
     error_type: MODULE_NOT_FOUND
@@ -65,7 +190,7 @@ error_patterns:
 
   - id: timeout
     error_type: TIMEOUT
-    pattern: "DUE TO TIME LIMIT|CANCELLED AT .* TIME|job exceeded time|State: TIMEOUT|state.*TIMEOUT"
+    pattern: "DUE TO TIME LIMIT|CANCELLED AT .* TIME|job exceeded time|State: TIMEOUT|state.*TIMEOUT|\\bTIMEOUT\\s+TimeLimit\\b"
     confidence: 1.0
     root_cause_brief: "作业运行时间超过了申请的时间上限，被系统终止"
     suggested_commands:
@@ -78,7 +203,7 @@ error_patterns:
 
   - id: out_of_memory
     error_type: OUT_OF_MEMORY
-    pattern: "OOM|Out Of Memory|oom-kill|exceeded memory limit|Killed.*memory"
+    pattern: "OOM|Out Of Memory|oom-kill|oom_kill|exceeded memory limit|Killed.*memory|^Killed$"
     confidence: 0.9
     root_cause_brief: "作业使用的内存超过了申请的内存上限"
     suggested_commands:

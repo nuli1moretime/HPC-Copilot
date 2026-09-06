@@ -1,12 +1,9 @@
 """LLM 客户端测试（不依赖真实 API，测试解析逻辑）。"""
 
-import sys
-from pathlib import Path
+import asyncio
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
-
-from hpc_copilot.llm_client import LLMClient
-from hpc_copilot.models import DiagnosisResult, ErrorType
+from backend.core.llm_client import LLMClient
+from backend.core.models import DiagnosisResult, ErrorType
 
 
 class TestLLMClientParsing:
@@ -43,6 +40,14 @@ class TestLLMClientParsing:
 
     def test_configured(self):
         assert self.client.is_configured
+
+    def test_async_http_client_is_reused_and_closed(self):
+        first = self.client._get_async_client()
+        second = self.client._get_async_client()
+        assert first is second
+
+        asyncio.run(self.client.aclose())
+        assert first.is_closed
 
 
 class TestPromptBuilding:

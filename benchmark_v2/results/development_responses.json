@@ -1,0 +1,275 @@
+{
+  "schema_version": 1,
+  "suite_id": "hpc-copilot-development-v2",
+  "suite_status": "development",
+  "created_at_utc": "2026-09-05T16:55:24.394935+00:00",
+  "model": "deepseek-v4-flash",
+  "temperature": 0.0,
+  "freeze_aggregate_sha256": null,
+  "systems": {
+    "llm_only": {
+      "cases": {
+        "dev_qa_001": {
+          "response": "好的，这个问题很关键！配置 RTX 5090 分区时，**分区名和 QoS 必须配套使用**，否则作业可能无法提交。\n\n对于 RTX 5090 分区，你需要这样配置：\n\n```bash\n#SBATCH --partition=P107-RTX5090\n#SBATCH --qos=qos_p107-a100\n```\n\n**注意**：虽然分区是 `P107-RTX5090`，但 QoS 仍然使用 `qos_p107-a100`（这是集群上唯一的 QoS）。\n\n---\n\n**一个完整的 RTX 5090 作业脚本示例**（假设你要用 1 张卡）：\n\n```bash\n#!/bin/bash\n#SBATCH --partition=P107-RTX5090\n#SBATCH --qos=qos_p107-a100\n#SBATCH --job-name=my_rtx5090_job\n#SBATCH --output=slurm-%j.out\n#SBATCH --time=01:00:00\n#SBATCH --gres=gpu:1\n\n# 加载环境\nmodule load cuda/13.0 python3.12\n\n# 运行你的程序\npython train.py\n```\n\n---\n\n**使用步骤**：\n1. 把上面的内容保存为 `job.sh`（用 `vim job.sh` 或 `nano job.sh`）\n2. 提交：`sbatch job.sh`\n3. 查看状态：`squeue -u $USER`\n\n---\n\n**小提示**：\n- 如果你不确定 `--gres=gpu:1` 里的数量，可以先查一下这个分区有多少张卡：`sinfo -p P107-RTX5090`\n- 如果提交时报错，把错误信息发给我，我帮你看看\n\n需要我帮你调整脚本里的具体内容吗？比如改时间、改 GPU 数量？",
+          "error": null,
+          "elapsed_seconds": 2.278,
+          "rag_context_sha256": null,
+          "rag_context_chars": 0
+        },
+        "dev_qa_002": {
+          "response": "不能。咱们这个集群**没有接入 slurmdbd**，所以 `sacct` 命令是**不可用**的。\n\n作业退出队列后，你想查状态或看输出，得靠这两个办法：\n\n1. **看输出文件**：作业跑完（或失败）后，输出会写在 `slurm-<作业号>.out` 文件里。比如作业号是 12345，就执行：\n   ```bash\n   cat slurm-12345.out\n   ```\n   如果文件很长，可以用 `tail -n 50 slurm-12345.out` 看最后 50 行。\n\n2. **看作业是否还在队列里**：用 `squeue -u $USER`，如果作业已经退出，这个命令就查不到它了——这是正常的，不代表作业出问题。\n\n所以记住：**查历史状态和输出，一律用 `cat slurm-<作业号>.out`，别用 `sacct`**。如果你忘了作业号，可以用 `ls slurm-*.out` 看看当前目录下有哪些输出文件。\n\n需要我帮你看看某个具体作业的输出吗？把作业号告诉我，我给你对应的命令。",
+          "error": null,
+          "elapsed_seconds": 2.18,
+          "rag_context_sha256": null,
+          "rag_context_chars": 0
+        },
+        "dev_qa_003": {
+          "response": "不会停止！这是个很好的问题，很多新手都会担心这个。\n\n**简单来说：** 用 `sbatch` 提交的作业是**完全独立于你的终端会话**运行的，即使你关闭网页、断开 SSH，甚至关机，作业都会继续在集群上正常运行。\n\n**为什么？** 因为 `sbatch` 提交作业后，作业是由 Slurm 调度器（集群的\"管家\"）来管理的，它运行在集群的登录节点上，跟你的电脑没有任何关系。你的电脑只是\"发号施令\"的工具，发完命令就可以\"撒手不管\"了。\n\n**你可以这样验证：**\n1. 提交作业后，用 `squeue -u $USER` 查看作业状态\n2. 然后断开 SSH，等一会儿再重新连接\n3. 再运行 `squeue -u $USER`，你会发现作业还在运行\n\n**需要注意的一点：** 如果你用的是 `srun`（交互式运行）而不是 `sbatch`，那断开连接作业就会中断。但既然你用的是 `sbatch`，就完全不用担心这个问题。\n\n**小贴士：** 作业运行完后，输出结果会保存在 `slurm-<作业号>.out` 文件里。等你重新连上集群后，用 `cat slurm-<作业号>.out` 就能查看结果了。\n\n所以放心大胆地提交作业，然后该干嘛干嘛去吧！😄",
+          "error": null,
+          "elapsed_seconds": 2.505,
+          "rag_context_sha256": null,
+          "rag_context_chars": 0
+        },
+        "dev_cmd_001": {
+          "response": "想看自己正在排队或运行的作业，用这个命令：\n\n```bash\nsqueue -u $USER\n```\n\n**解释一下：**\n- `squeue` 是 Slurm 的查询命令，用来查看作业队列\n- `-u $USER` 表示只看你自己的作业（`$USER` 会自动替换成你的用户名）\n\n**输出示例：**\n```\n             JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)\n             12345 P107-A100   myjob    zhangsan  R       0:05      1 gpu01\n             12346 Students    test     zhangsan  PD      0:00      1 (Resources)\n```\n\n**怎么看输出：**\n- `ST` 列：`R` 表示正在运行（Running），`PD` 表示排队中（Pending）\n- `TIME` 列：作业已经运行了多久\n- `NODELIST(REASON)`：如果是 `(Resources)` 说明在等资源，如果是 `(Priority)` 说明在等优先级\n\n如果输出为空，说明你当前没有排队或运行的作业。想取消某个作业就用 `scancel <作业号>`，比如 `scancel 12345`。",
+          "error": null,
+          "elapsed_seconds": 12.444,
+          "rag_context_sha256": null,
+          "rag_context_chars": 0
+        },
+        "dev_cmd_002": {
+          "response": "`#SBATCH --gres=gpu:1` 的意思是：**向 Slurm 申请 1 张 GPU 卡**。\n\n具体解释：\n\n- `--gres` 是 Slurm 的通用资源（Generic RESource）申请参数\n- `gpu:1` 表示申请 1 个 GPU 资源\n- 所以你会获得 **1 张 GPU**（具体是哪张卡由调度器分配，可能是 A100 或 RTX5090，取决于你指定的分区）\n\n---\n\n**小提示**：\n- 如果你想要 2 张 GPU，就写 `#SBATCH --gres=gpu:2`\n- 在作业脚本里，你可以用 `nvidia-smi` 命令查看实际分配到的 GPU 信息\n\n需要我帮你写一个完整的作业脚本示例吗？",
+          "error": null,
+          "elapsed_seconds": 1.416,
+          "rag_context_sha256": null,
+          "rag_context_chars": 0
+        },
+        "dev_cmd_003": {
+          "response": "好问题！这其实是个很常见的疑惑。答案是：**命令行指定的优先级更高**。\n\n具体来说，Slurm 的优先级规则是：\n\n**命令行参数 > 脚本里的 #SBATCH 指令 > 配置文件默认值**\n\n也就是说：\n- 如果你在 `sbatch` 命令后面直接加了 `--partition=xxx`，那这个会覆盖脚本里的 `#SBATCH --partition=yyy`\n- 如果命令行没指定，才用脚本里的\n- 如果脚本里也没写，才用集群的默认配置\n\n举个例子，假设你的脚本 `job.sh` 里写的是：\n```bash\n#SBATCH --partition=P107-A100\n```\n\n但你提交时这样写：\n```bash\nsbatch --partition=Students job.sh\n```\n\n那最终作业会跑到 **Students** 分区，而不是脚本里写的 P107-A100。\n\n---\n\n**小建议**：为了避免混淆，建议只在脚本里写分区，提交时不要重复指定。这样脚本本身就是一个完整的\"作业说明书\"，别人拿到你的脚本也能直接跑，不用猜。\n\n如果你不确定当前作业到底跑在哪个分区，可以用：\n```bash\nsqueue -u $USER\n```\n看输出里的 `PARTITION` 列就能确认了。",
+          "error": null,
+          "elapsed_seconds": 1.843,
+          "rag_context_sha256": null,
+          "rag_context_chars": 0
+        },
+        "dev_diag_001": {
+          "response": "[DIAGNOSIS_TYPE: QoS 配置错误]\n\n同学你好，这个报错的意思是：**你提交作业时指定的 QoS（服务质量）名称不对，或者没有指定 QoS**。\n\nSlurm 要求每个作业必须绑定一个有效的 QoS，而咱们集群里可用的 QoS 只有一个，叫 `qos_p107-a100`。如果你在脚本里写了别的名字（比如 `qos_p107`、`qos_a100`），或者漏写了 `#SBATCH --qos` 这一行，就会报这个错。\n\n**排查步骤（按顺序执行）：**\n\n1. **先看你的作业脚本**，确认 `#SBATCH --qos` 这一行写的是不是 `qos_p107-a100`：\n   ```bash\n   grep -n \"qos\" 你的脚本.sh\n   ```\n   如果输出里没有 `qos_p107-a100`，那就是写错了或漏了。\n\n2. **如果脚本里没有 QoS 行**，请加上这一行（放在 `#SBATCH --partition` 下面）：\n   ```bash\n   #SBATCH --qos=qos_p107-a100\n   ```\n\n3. **确认分区名也对**。咱们集群只有三个分区：`P107-A100`、`P107-RTX5090`、`Students`。如果你用了别的分区名，也会连带报 QoS 错误。检查一下：\n   ```bash\n   grep -n \"partition\" 你的脚本.sh\n   ```\n\n4. **改好后重新提交**：\n   ```bash\n   sbatch 你的脚本.sh\n   ```\n\n**一个可以直接复制的最小正确示例**（保存为 `test.sh` 后 `sbatch test.sh`）：\n\n```bash\n#!/bin/bash\n#SBATCH --partition=P107-A100\n#SBATCH --qos=qos_p107-a100\n#SBATCH --job-name=test\n#SBATCH --output=slurm-%j.out\n#SBATCH --time=00:10:00\n#SBATCH --gres=gpu:1\n\nmodule load cuda/13.0 python3.12\necho \"Hello from GPU job\"\nnvidia-smi\n```\n\n如果按上面改完还是报同样的错，请把脚本内容发给我，我帮你逐行检查。",
+          "error": null,
+          "elapsed_seconds": 3.353,
+          "rag_context_sha256": null,
+          "rag_context_chars": 0
+        },
+        "dev_diag_002": {
+          "response": "[DIAGNOSIS_TYPE: 路径错误]\n\n同学你好！这个错误很常见，别慌，我来帮你分析。\n\n**错误原因**：Slurm 作业脚本里写了要运行 `python /home/user/work/train.py`，但集群上**根本不存在这个文件**。就像你让同学去图书馆借一本不存在的书，他当然找不到。\n\n**可能的情况**：\n1. 你的 `train.py` 不在 `/home/user/work/` 这个目录下（比如在你自己家目录的其他子文件夹里）\n2. 文件名写错了（比如实际叫 `train_1.py` 或 `main.py`）\n3. 你还没把 `train.py` 上传到集群上\n\n**怎么排查**？先登录集群，运行下面命令看看文件到底在哪：\n\n```bash\n# 查看当前目录下有没有 train.py\nls -l train.py\n\n# 如果不在当前目录，用 find 全盘找（只搜你自己的家目录，很快）\nfind ~ -name \"train.py\" 2>/dev/null\n```\n\n**找到后怎么改**？假设文件实际在 `/home/你的用户名/project/train.py`，那么你的作业脚本里那行应该改成：\n\n```bash\npython /home/你的用户名/project/train.py\n```\n\n**小建议**：以后写作业脚本时，最好用相对路径 + 先 `cd` 到脚本所在目录，这样更不容易出错。比如在脚本开头加：\n\n```bash\ncd /home/你的用户名/project   # 换成你实际存放代码的目录\npython train.py\n```\n\n你先用 `find` 命令找一下文件，找到后告诉我它在哪，我帮你改脚本。如果 `find` 也没找到，那说明文件还没上传，需要先用 `scp` 或 `sftp` 传上去。",
+          "error": null,
+          "elapsed_seconds": 16.068,
+          "rag_context_sha256": null,
+          "rag_context_chars": 0
+        },
+        "dev_diag_003": {
+          "response": "[DIAGNOSIS_TYPE: 作业超时被取消]\n\n同学你好，这个报错很常见，别担心，我来帮你解释一下。\n\n**这句话的意思是：**\n你的作业（作业号 12345）在节点 node01 上运行到了你设定的时间上限，被 Slurm 强制取消了。`DUE TO TIME LIMIT` 就是“因为达到时间限制”的意思。\n\n**为什么会这样？**\n你在提交作业时，脚本里写了 `#SBATCH --time=HH:MM:SS` 来限制作业最长运行时间。当作业运行到这个时间还没结束，Slurm 就会把它杀掉，防止它无限占用资源。\n\n**怎么解决？**\n1. **先看看你的作业脚本**，找到 `--time` 那一行，比如：\n   ```bash\n   #SBATCH --time=01:00:00   # 这是1小时\n   ```\n2. **估算一下你的程序实际需要多久**。如果之前跑过类似的，可以看 `slurm-12345.out` 文件里最后输出的时间戳，或者用 `date` 命令在程序里打印开始和结束时间。\n3. **把时间改大一些**，比如从 1 小时改成 2 小时：\n   ```bash\n   #SBATCH --time=02:00:00\n   ```\n   然后重新 `sbatch` 提交。\n\n**小提示：**\n- 时间格式是 `时:分:秒`，比如 `02:30:00` 表示 2 小时 30 分钟。\n- 不要设得太大（比如 7 天），因为排队时调度器会优先安排时间短的作业，设太大可能等更久。\n- 如果程序本身有 bug 导致死循环，改大时间只是拖延，建议先在小数据上测试。\n\n你可以先 `cat slurm-12345.out` 看看程序最后输出到哪一步，判断是正常跑完差一点时间，还是卡住了。有问题随时问我！",
+          "error": null,
+          "elapsed_seconds": 3.608,
+          "rag_context_sha256": null,
+          "rag_context_chars": 0
+        },
+        "dev_diag_004": {
+          "response": "[DIAGNOSIS_TYPE: 正常结束]\n\n这个输出**不需要修复**，一切正常！让我帮你解读一下：\n\n- **Job completed normally.**：作业正常完成，没有报错\n- **Result: 10100**：你的程序输出的结果（比如某个计算值）\n- **Exit code: 0**：退出码为 0，表示程序成功执行完毕（非 0 才表示出错）\n\n---\n\n**给初学者的解释：**\n\n就像你跑完一个程序，它说\"我干完了，没出问题\"，这就是最理想的情况。Exit code 0 是 Linux 世界的\"OK\"信号，就像绿灯一样。\n\n**如果以后看到 Exit code 非 0**（比如 1、2、127 等），那才需要关注，说明程序中途出错了。\n\n---\n\n**小提示：**\n如果你想确认作业的输出文件，可以用：\n```bash\ncat slurm-<作业号>.out\n```\n把 `<作业号>` 换成你实际的作业号（比如 `slurm-12345.out`）。\n\n现在你可以放心继续下一步啦！有什么其他问题吗？😊",
+          "error": null,
+          "elapsed_seconds": 1.812,
+          "rag_context_sha256": null,
+          "rag_context_chars": 0
+        },
+        "dev_script_001": {
+          "response": "好的，我来为你生成一个最小 CPU 教学作业脚本。不过需要先说明一点：**我们集群的 QoS 名称是 `qos_p107-a100`**，没有 `qos_stu_default` 这个 QoS。我会使用正确的 QoS 名称。\n\n另外，`Students` 分区是 CPU 分区，不需要 `--gres=gpu` 参数。\n\n以下是完整的 `submit.sh` 脚本：\n\n```bash\n#!/bin/bash\n#SBATCH --partition=Students\n#SBATCH --qos=qos_p107-a100\n#SBATCH --job-name=sum_1_100\n#SBATCH --output=logs/slurm-%j.out\n#SBATCH --time=00:05:00\n\n# 加载 Python 环境\nmodule load python3.12\n\n# 运行 Python 计算 1 到 100 的和\npython3 -c \"\ntotal = sum(range(1, 101))\nprint(f'1 到 100 的和是: {total}')\n\"\n```\n\n**使用说明：**\n\n1. 先创建 `logs` 目录（如果还没有的话）：\n   ```bash\n   mkdir -p logs\n   ```\n\n2. 将上面的脚本保存为 `submit.sh`：\n   ```bash\n   nano submit.sh\n   ```\n   粘贴内容后，按 `Ctrl+O` 保存，`Ctrl+X` 退出。\n\n3. 提交作业：\n   ```bash\n   sbatch submit.sh\n   ```\n\n4. 查看作业状态：\n   ```bash\n   squeue -u $USER\n   ```\n\n5. 作业完成后，查看输出：\n   ```bash\n   cat logs/slurm-<作业号>.out\n   ```\n\n**注意事项：**\n- 脚本中 `--output=logs/slurm-%j.out` 会把日志写到 `logs` 目录下，`%j` 会自动替换为作业号\n- 如果 `logs` 目录不存在，作业会报错，所以记得先创建\n- 这个作业预计几秒内就能完成，`--time=00:05:00` 是最长运行时间限制\n\n有任何问题随时问我！",
+          "error": null,
+          "elapsed_seconds": 2.818,
+          "rag_context_sha256": null,
+          "rag_context_chars": 0
+        },
+        "dev_script_002": {
+          "response": "```bash\n#!/bin/bash\n#SBATCH --partition=P107-A100\n#SBATCH --qos=qos_p107-a100\n#SBATCH --job-name=vector_add\n#SBATCH --output=logs/slurm-%j.out\n#SBATCH --time=00:05:00\n#SBATCH --gres=gpu:1\n\nmodule load cuda/13.0\n\n# 编译并运行\nnvcc -o vector_add vector_add.cu\n./vector_add\n```\n\n**使用说明**：将上述脚本保存为 `run_vector_add.sh`，然后执行 `sbatch run_vector_add.sh` 提交作业。请确保 `logs` 目录已存在（可先运行 `mkdir -p logs`），且 `vector_add.cu` 位于当前目录。作业日志将输出到 `logs/slurm-<作业号>.out`。",
+          "error": null,
+          "elapsed_seconds": 1.188,
+          "rag_context_sha256": null,
+          "rag_context_chars": 0
+        }
+      }
+    },
+    "llm_rag": {
+      "cases": {
+        "dev_qa_001": {
+          "response": "好的，这个问题很关键！配置不对的话，作业提交会直接报错。我给你一个**可以直接复制粘贴**的模板。\n\n针对 **P107-RTX5090** 分区，对应的 QoS 是 **`qos_p107-rtx5090`**。\n\n**关键约束（必须遵守）：**\n- 最多同时运行 **4 个作业**\n- 每组资源上限：**cpu=16, gpu=4**\n- 运行时长：**不限**\n\n---\n\n### 作业脚本模板\n\n把下面内容保存为 `job.sh`（用 `vim job.sh` 或 `nano job.sh` 创建），然后 `sbatch job.sh` 提交：\n\n```bash\n#!/bin/bash\n#SBATCH --partition=P107-RTX5090\n#SBATCH --qos=qos_p107-rtx5090\n#SBATCH --job-name=my_rtx5090_job\n#SBATCH --output=slurm-%j.out\n#SBATCH --time=24:00:00\n#SBATCH --gres=gpu:1\n#SBATCH --cpus-per-task=4\n\n# 加载环境（根据你的需要选择）\nmodule load cuda/13.0 python3.12\n\n# 显式进入项目目录（重要！）\ncd /path/to/your/project\n\n# 实际运行命令\npython train.py\n```\n\n---\n\n### 几个容易踩的坑\n\n1. **分区名别写错**：是 `P107-RTX5090`，不是 `GPU-RTX5090` 或 `P107-V100`（后者不存在）。\n2. **QoS 必须匹配**：`P107-RTX5090` 分区只能用 `qos_p107-rtx5090`，不能混用 A100 的 QoS。\n3. **资源别超限**：`--gres=gpu:4` 是上限，`--cpus-per-task` 加上去别超过 16。\n4. **命令行会覆盖脚本**：如果你用 `sbatch -p P107-A100 job.sh`，脚本里的分区设置会被覆盖，注意别搞混。\n\n---\n\n### 验证配置\n\n提交前可以先查一下分区允许的 QoS：\n\n```bash\nscontrol show partition P107-RTX5090 | grep AllowQos\n```\n\n如果还有疑问，比如想确认自己当前能用的 QoS，可以运行：\n\n```bash\nsacctmgr show assoc user=$USER format=User,Partition,QOS\n```\n\n需要我帮你写一个具体的训练脚本吗？告诉我你的任务类型（比如 PyTorch 训练、推理等），我可以帮你定制。",
+          "error": null,
+          "elapsed_seconds": 4.495,
+          "rag_context_sha256": "a641fe0f7f5b9cae9b404996552332f4bbd2300d78f8e8d47bd66e34741ec747",
+          "rag_context_chars": 2063
+        },
+        "dev_qa_002": {
+          "response": "不能完全依靠 `sacct`，这一点要特别提醒你。\n\n**原因很简单：** 咱们这个集群**没有接入 slurmdbd**（Slurm 的数据库服务），所以 `sacct` 命令**不可用**，或者功能严重受限。你就算敲了 `sacct`，大概率也查不到任何历史记录。\n\n---\n\n**那作业退出队列后，怎么看它的结果呢？**\n\n靠**输出文件**。你提交作业时，脚本里通常会写一行：\n\n```bash\n#SBATCH --output=slurm-%j.out\n```\n\n这里的 `%j` 会被替换成**作业号**。比如你的作业号是 `12345`，那么运行结束后，你的当前目录下就会生成一个 `slurm-12345.out` 文件，里面就是程序的全部输出（包括报错信息）。\n\n**查看方法：**\n\n```bash\n# 查看整个输出文件\ncat slurm-12345.out\n\n# 只看最后 50 行（最常用，报错一般都在末尾）\ntail -n 50 slurm-12345.out\n\n# 实时盯着看（作业还在跑的时候用）\ntail -f slurm-12345.out\n```\n\n---\n\n**所以，正确的排查思路是：**\n\n1. 作业还在排队/运行 → 用 `squeue -u $USER` 看状态\n2. 作业已经结束 → 直接 `cat slurm-<作业号>.out` 看输出\n3. 想确认作业到底怎么结束的（正常/超时/被杀）→ 用 `scontrol show job <作业号>` 看 `JobState` 和 `ExitCode`\n\n---\n\n**一句话总结：** 别指望 `sacct`，记住 `slurm-<作业号>.out` 这个文件才是你的\"作业档案袋\"。\n\n如果你手头有具体的作业号，直接告诉我，我帮你把对应的查看命令写出来。",
+          "error": null,
+          "elapsed_seconds": 3.379,
+          "rag_context_sha256": "f28e5c8d5eec80c5384ea9f70d40bac8f6d6901bc4e00ac25b902de8bf127e2f",
+          "rag_context_chars": 1775
+        },
+        "dev_qa_003": {
+          "response": "不会的，放心！😊\n\n你用 `sbatch` 提交的作业是**完全独立于你的终端会话**的。即使你关闭网页、断开 SSH 连接，甚至关机，作业都会在集群上继续正常运行。\n\n这是因为 `sbatch` 的工作机制是：\n1. 你把作业脚本提交给 Slurm 调度器\n2. Slurm 把作业放到队列里，等待资源分配\n3. 作业在计算节点上运行，**不依赖你的电脑或终端**\n\n---\n\n**验证方法**：断开 SSH 后重新登录，运行：\n```bash\nsqueue -u $USER\n```\n如果能看到你的作业还在列表里（状态是 `R` 运行中 或 `PD` 排队中），就说明它还在正常跑。\n\n---\n\n**小提醒**：\n- 如果你用的是 `srun` 交互式运行（比如 `srun -p P107-A100 --gres=gpu:1 --time=01:00:00 python train.py`），那**断开连接作业就会终止**，因为它是依赖你的终端会话的。\n- 所以跑正式任务，**一定要用 `sbatch` 提交脚本**，这样才稳妥。\n\n需要我帮你写一个作业脚本吗？",
+          "error": null,
+          "elapsed_seconds": 2.124,
+          "rag_context_sha256": "6732dd9e2c5f8d0ab5cf0a0e02da433496342cfe9e9039b974675d15b73242b8",
+          "rag_context_chars": 1402
+        },
+        "dev_cmd_001": {
+          "response": "想看自己正在排队或运行的作业，用这条命令就行：\n\n```bash\nsqueue -u $USER\n```\n\n**解释一下：**\n\n- `squeue` 是 Slurm 的“查看作业队列”命令，会列出所有作业。\n- `-u $USER` 表示只显示**你自己**的作业（`$USER` 会自动替换成你的用户名）。\n\n**输出怎么看？** 你会看到类似这样的表格：\n\n```\nJOBID PARTITION     NAME     USER ST       TIME  NODELIST(REASON)\n  123  P107-A100   train    yourname  R       0:05  gpu01\n  124  P107-A100   train    yourname  PD      0:00  (Resources)\n```\n\n- **JOBID**：作业编号\n- **PARTITION**：所在分区\n- **NAME**：作业名\n- **ST**：状态码，`R` = 运行中（RUNNING），`PD` = 排队中（PENDING）\n- **TIME**：已运行时长\n- **NODELIST(REASON)**：运行节点，或排队原因（比如 `(Resources)` 表示在等资源）\n\n---\n\n**小技巧：** 如果你只想看作业号和状态，可以加 `--noheader` 去掉表头：\n\n```bash\nsqueue -u $USER --noheader\n```\n\n如果作业很多，也可以只看某个分区，比如：\n\n```bash\nsqueue -u $USER -p P107-A100\n```\n\n这样就能一眼看到自己所有在跑和排队的作业了。有问题随时问我～",
+          "error": null,
+          "elapsed_seconds": 6.182,
+          "rag_context_sha256": "550a5a35e33368b4db142914506208e8266819c3dc4599a21e37d65ebf6dc148",
+          "rag_context_chars": 1747
+        },
+        "dev_cmd_002": {
+          "response": "`#SBATCH --gres=gpu:1` 的意思是：**向调度器申请 1 张 GPU 卡**。\n\n- `--gres` 是 Slurm 的通用资源（Generic Resource）申请参数，这里特指 GPU。\n- `gpu:1` 表示申请 **1 张** GPU。\n- 如果你写 `gpu:2`，就是申请 2 张；`gpu:4` 就是 4 张，以此类推。\n\n所以，`#SBATCH --gres=gpu:1` 会给你 **1 张 GPU**。\n\n---\n\n**小提示**：\n- 在作业脚本里，你可以通过环境变量 `$SLURM_GPUS` 查看实际分配到的 GPU 数量（在作业运行时有效）。\n- 如果申请了多张 GPU，记得在代码里指定用哪张卡（比如 PyTorch 里用 `CUDA_VISIBLE_DEVICES` 或 `torch.cuda.set_device`），否则可能默认只用第一张。\n\n需要我帮你写一个完整的作业脚本示例吗？",
+          "error": null,
+          "elapsed_seconds": 1.56,
+          "rag_context_sha256": "012da328c5a13dd897ce83a3a629ca7dcdc07526a2b88c8c430cf662483d4e53",
+          "rag_context_chars": 2156
+        },
+        "dev_cmd_003": {
+          "response": "好问题！这个坑很多新手都踩过。\n\n**结论：命令行指定的分区会覆盖脚本里的 `#SBATCH` 设置。**\n\n也就是说，如果脚本里写的是 `#SBATCH --partition=P107-A100`，但你提交时用了：\n\n```bash\nsbatch -p P107-RTX5090 job.sh\n```\n\n那么最终作业会跑到 **P107-RTX5090** 分区，而不是脚本里写的 P107-A100。\n\n---\n\n**为什么？**\n\nSlurm 的规则是：**命令行参数优先级 > 脚本内 `#SBATCH` 参数**。你可以把 `#SBATCH` 看成脚本的\"默认值\"，命令行参数是\"临时覆盖\"。\n\n---\n\n**一个实用建议：**\n\n如果你不确定脚本里写的是什么，提交前可以先看一眼：\n\n```bash\ngrep -i \"partition\" job.sh\n```\n\n这样能确认脚本里默认的分区，避免\"我以为跑在 A100 上，结果跑到了 5090\"这种尴尬情况。\n\n---\n\n**小提醒：** 分区和 QoS 要配套。比如你命令行指定了 `-p P107-A100`，但脚本里 QoS 写的是 `qos_p107-rtx5090`，提交时可能会报错。所以如果改了分区，记得检查 QoS 是否匹配。",
+          "error": null,
+          "elapsed_seconds": 2.436,
+          "rag_context_sha256": "4a43972c0f5fc3555c240ecf56bbc6db641ef6a807333102b0cf2c02c52a566c",
+          "rag_context_chars": 1318
+        },
+        "dev_diag_001": {
+          "response": "[DIAGNOSIS_TYPE: INVALID_QOS]\n\n同学你好，这个报错的意思是：**你提交作业时写的 QoS 名称不对，或者没有权限使用它**。QoS 可以理解为“作业的服务等级”，每个分区（partition）有自己对应的 QoS，不能混用。\n\n**常见原因**：把分区名和 QoS 名搞混了。比如你写成了 `qos_p107`，但正确的应该是 `qos_p107-a100`（对应 P107-A100 分区）或 `qos_p107-rtx5090`（对应 P107-RTX5090 分区）。\n\n---\n\n**排查步骤（按顺序执行）**\n\n1. **先看你的作业脚本里写了什么**  \n   打开你的 .sh 文件，检查 `#SBATCH --qos=` 和 `#SBATCH --partition=` 这两行：\n   ```bash\n   grep -E \"SBATCH.*(qos|partition)\" 你的脚本.sh\n   ```\n\n2. **确认正确的 QoS 名称**  \n   本集群可用的分区和 QoS 对应关系如下：\n   - 分区 `P107-A100` → QoS `qos_p107-a100`\n   - 分区 `P107-RTX5090` → QoS `qos_p107-rtx5090`\n   - 分区 `Students` → 通常不需要指定 QoS（或使用默认）\n\n3. **修改脚本中的错误**  \n   例如，如果你要用 A100 显卡，正确的写法是：\n   ```bash\n   #SBATCH --partition=P107-A100\n   #SBATCH --qos=qos_p107-a100\n   ```\n\n4. **重新提交**  \n   ```bash\n   sbatch 你的脚本.sh\n   ```\n\n---\n\n**如果修改后仍然报错**，可能是权限问题（比如你的账号未被允许使用该 QoS）。这时请：\n- 联系管理员确认你的账号权限\n- 或者先尝试提交到 `Students` 分区（不需要指定 QoS）：\n  ```bash\n  #SBATCH --partition=Students\n  ```\n\n---\n\n**小提示**：如果你不确定自己脚本里写了什么，可以直接把脚本内容发给我，我帮你检查。",
+          "error": null,
+          "elapsed_seconds": 17.09,
+          "rag_context_sha256": "80616df7986e2659d763504afbaf84e8bac7776f0e740d699c663c5b3c88fc3c",
+          "rag_context_chars": 1462
+        },
+        "dev_diag_002": {
+          "response": "[DIAGNOSIS_TYPE: ENTRYPOINT_NOT_FOUND]\n\n这个错误很明确：**Slurm 作业脚本里指定的 Python 文件 `train.py` 不存在**。\n\n具体来说，系统尝试运行 `/home/user/work/train.py` 这个文件，但找不到它。就像你让同学去图书馆拿一本书，但那个书架上根本没有这本书。\n\n**常见原因和排查步骤：**\n\n1. **文件路径写错了**  \n   检查你的作业脚本（`.sh` 文件）里 `python` 后面写的路径是否和实际文件位置一致。  \n   用这个命令看看文件到底在哪：\n   ```bash\n   ls /home/user/work/\n   ```\n   如果文件不在 `work` 目录下，就改成实际路径。\n\n2. **文件名拼写错误**  \n   确认是 `train.py` 而不是 `trainning.py` 或 `Train.py`（Linux 区分大小写）。  \n   用 `ls` 看实际文件名：\n   ```bash\n   ls /home/user/work/*.py\n   ```\n\n3. **文件确实还没创建**  \n   如果你还没把 `train.py` 上传到集群，或者还没写这个文件，那当然找不到。  \n   确认一下：\n   ```bash\n   test -f /home/user/work/train.py && echo \"文件存在\" || echo \"文件不存在\"\n   ```\n\n4. **工作目录问题**  \n   如果你的脚本里用了相对路径（比如 `python train.py`），但提交作业时所在的目录不是 `/home/user/work`，也会找不到。  \n   建议在脚本开头加上 `cd` 到项目目录：\n   ```bash\n   cd /home/user/work\n   python train.py\n   ```\n\n**快速修复：**  \n先确认文件位置，然后修改作业脚本中的路径。改完后重新提交：\n```bash\nsbatch 你的脚本.sh\n```\n\n如果还有问题，把 `ls /home/user/work/` 的输出发给我看看，我帮你定位。",
+          "error": null,
+          "elapsed_seconds": 2.818,
+          "rag_context_sha256": "e5acacefb800825258c949f68c57f139bded1715e3f12e5785dcb906df91607b",
+          "rag_context_chars": 1665
+        },
+        "dev_diag_003": {
+          "response": "[DIAGNOSIS_TYPE: TIMEOUT]\n\n同学你好，这个报错信息非常明确：**你的作业是因为“超时”被系统终止的**。\n\n我来帮你逐句翻译一下这段报错：\n\n- `JOB 12345` → 作业号是 12345\n- `ON node01` → 运行在 node01 节点上\n- `CANCELLED AT 2026-08-21T10:30:00` → 在 2026-08-21 10:30:00 被取消\n- `DUE TO TIME LIMIT` → **原因是超过了时间限制**\n\n---\n\n**为什么会这样？**\n\n你在提交作业时，脚本里写了 `#SBATCH --time=HH:MM:SS` 来限制作业最长运行时间。当作业实际运行时间超过这个限制时，Slurm 调度器会强制终止它，防止它无限期占用资源。\n\n---\n\n**怎么解决？**\n\n1. **先确认你申请了多长的时间**，查看你的作业脚本：\n   ```bash\n   grep -- \"--time\" 你的脚本.sh\n   ```\n\n2. **如果作业确实需要更长时间**，可以适当增大 `--time` 的值，比如从 `02:00:00`（2小时）改成 `04:00:00`（4小时），然后重新提交：\n   ```bash\n   sbatch 你的脚本.sh\n   ```\n\n3. **如果作业经常超时**，建议在代码里定期保存 checkpoint（断点），这样即使超时被终止，下次可以从断点继续跑，不用从头开始。\n\n---\n\n**小提示**：超时信息不会写入 `slurm-12345.out` 文件，所以如果你在输出文件里没看到报错，是正常的。另外，本集群没有接入 slurmdbd，`sacct` 命令不可用，查历史请直接看 `slurm-<作业号>.out` 文件。\n\n如果还有疑问，随时问我！",
+          "error": null,
+          "elapsed_seconds": 2.632,
+          "rag_context_sha256": "5b38ec0bd5018e77e4d4e31490a589c869f21ab579420b73f4a45becb3de9d4b",
+          "rag_context_chars": 1763
+        },
+        "dev_diag_004": {
+          "response": "[DIAGNOSIS_TYPE: 正常结束]\n\n这个输出**不需要修复**，一切正常！\n\n让我帮你解读一下这三行输出：\n\n1. **`Job completed normally.`** — 作业正常完成，没有报错。\n2. **`Result: 10100`** — 你的程序计算出了结果 10100，这是程序正常输出的内容。\n3. **`Exit code: 0`** — 退出码为 0，表示程序成功执行完毕（在 Linux 中，退出码 0 代表成功，非 0 才代表出错）。\n\n---\n\n**简单总结：**\n- ✅ 退出码 0 = 程序成功跑完\n- ✅ 有正常的结果输出（10100）\n- ✅ 没有 Traceback 或报错信息\n\n所以你可以放心，这个作业是成功的，不需要做任何修复。如果后续想查看作业的详细输出，可以用 `cat slurm-<作业号>.out` 查看完整的输出文件。",
+          "error": null,
+          "elapsed_seconds": 1.576,
+          "rag_context_sha256": "c943eabf27499e07f8f217221fb3001f8f2aa9b34d7d78700d26920db6dc20dc",
+          "rag_context_chars": 1452
+        },
+        "dev_script_001": {
+          "response": "好的，这是一个适合初学者的最小 CPU 教学作业脚本。我帮你写好了，直接保存为 `submit.sh` 就能用：\n\n```bash\n#!/bin/bash\n#SBATCH --partition=Students\n#SBATCH --qos=qos_stu_default\n#SBATCH --job-name=sum_1_100\n#SBATCH --output=logs/slurm-%j.out\n#SBATCH --time=00:05:00\n\n# 显式进入项目目录（请改成你自己的实际路径）\ncd ~/hpc_learning || exit 1\n\n# 创建日志目录（SBATCH 不会自动创建）\nmkdir -p logs\n\n# 加载 Python 环境\nmodule load python3.12\n\n# 运行 Python 计算 1 到 100 的和\npython3 -c \"\ntotal = sum(range(1, 101))\nprint(f'1 到 100 的和是: {total}')\n\"\n```\n\n**使用方法：**\n\n1. 把上面的内容保存为 `submit.sh`（注意第一行 `#!/bin/bash` 不能少）\n2. 把脚本里的 `cd ~/hpc_learning` 改成你自己的项目目录（比如 `cd ~/myproject`）\n3. 在终端执行提交命令：\n   ```bash\n   sbatch submit.sh\n   ```\n\n**提交后怎么看结果？**\n\n- 用 `squeue -u $USER` 查看作业状态\n- 作业跑完后，日志会写在 `logs/` 目录下，文件名类似 `slurm-12345.out`（12345 是作业号）\n- 用 `cat logs/slurm-12345.out` 就能看到输出结果\n\n**小提示：** 这个作业用的是 Students 分区的默认 QoS（4 CPU / 1 GPU / 16G 内存 / 4 小时），我们只用了 5 分钟，完全够用。如果以后要跑更久的作业，可以换 `qos_stu_small`（8 小时）或 `qos_stu_long`（72 小时）。",
+          "error": null,
+          "elapsed_seconds": 3.816,
+          "rag_context_sha256": "0d147d13058994a36fb37332d0499f99c06195ae2f26d13d838bec8627107eec",
+          "rag_context_chars": 2063
+        },
+        "dev_script_002": {
+          "response": "好的，这是为你生成的 A100 单卡 CUDA 作业脚本：\n\n```bash\n#!/bin/bash\n#SBATCH --partition=P107-A100\n#SBATCH --qos=qos_p107-a100\n#SBATCH --job-name=vector_add\n#SBATCH --output=logs/slurm-%j.out\n#SBATCH --time=00:05:00\n#SBATCH --gres=gpu:1\n\n# 加载 CUDA 环境\nmodule load cuda/13.0\n\n# 创建日志目录（如果不存在）\nmkdir -p logs\n\n# 编译 vector_add.cu\nnvcc -o vector_add vector_add.cu\n\n# 运行程序\n./vector_add\n```\n\n**使用方法：**\n1. 将上述内容保存为 `vector_add.sh` 文件\n2. 在终端执行 `sbatch vector_add.sh` 提交作业\n3. 作业运行后，日志会输出到 `logs/slurm-<作业号>.out` 文件中\n\n注意：请确保 `vector_add.cu` 文件位于你提交作业的目录下。",
+          "error": null,
+          "elapsed_seconds": 1.521,
+          "rag_context_sha256": "79b94e174aa959bb89519afbeb91032abf7cf6201d79dbc3faeef292d2e1ec8c",
+          "rag_context_chars": 2177
+        }
+      }
+    },
+    "hpc_copilot": {
+      "cases": {
+        "dev_qa_001": {
+          "response": "好的，这个问题很关键！比赛分区和 QoS 必须**严格匹配**，配错了提交时会直接报错。\n\n针对 **RTX 5090 比赛分区**，你需要这样配置：\n\n## 1. 分区（Partition）和 QoS\n\n- **分区名**：`P107-RTX5090`\n- **QoS**：`qos_p107-rtx5090`\n\n## 2. 资源上限（重要！）\n\n这个 QoS 的限制是：\n- **最多同时运行 4 个作业**\n- **每组最多申请：CPU = 16 核，GPU = 4 块**\n- **运行时长不限**\n\n也就是说，你**不能**在一个作业里申请超过 4 块 GPU 或 16 个 CPU 核，否则提交会失败。\n\n## 3. 作业脚本模板\n\n你可以直接复制下面这个脚本，保存为 `job.sh`：\n\n```bash\n#!/bin/bash\n#SBATCH --partition=P107-RTX5090\n#SBATCH --qos=qos_p107-rtx5090\n#SBATCH --job-name=my_rtx5090_job\n#SBATCH --output=slurm-%j.out\n#SBATCH --time=24:00:00\n#SBATCH --gres=gpu:1\n#SBATCH --cpus-per-task=4\n\nmodule load cuda/13.0 python3.12\n\n# 你的实际运行命令，例如：\npython train.py\n```\n\n保存后提交：\n```bash\nsbatch job.sh\n```\n\n## 4. 小提醒\n\n- `--time` 格式是 `时:分:秒`，比如 `24:00:00` 表示 24 小时。这个 QoS 时长不限，但建议还是写一个合理的时间。\n- 如果你只需要 1 块 GPU，`--gres=gpu:1` 就够了，不用贪多。\n- 提交后可以用 `squeue -u $USER` 查看作业状态。\n\n需要我帮你调整成具体的训练任务脚本吗？比如告诉我要跑什么程序、用几块卡？",
+          "error": null,
+          "elapsed_seconds": 17.647,
+          "rag_context_sha256": "a641fe0f7f5b9cae9b404996552332f4bbd2300d78f8e8d47bd66e34741ec747",
+          "rag_context_chars": 2063
+        },
+        "dev_qa_002": {
+          "response": "不能完全依靠 `sacct`，这一点要特别提醒你。\n\n**原因很简单：** 我们这个集群**没有接入 slurmdbd**（Slurm 的数据库服务），所以 `sacct` 命令**不可用或功能受限**，查不到可靠的作业历史。\n\n---\n\n**那作业退出队列后，怎么看结果呢？**\n\n靠**输出文件**。提交作业时，脚本里通常会有这一行：\n\n```bash\n#SBATCH --output=slurm-%j.out\n```\n\n`%j` 会被替换成你的**作业号**，所以作业结束后，会在你提交作业的目录下生成一个类似 `slurm-12345.out` 的文件，里面就是程序的输出和报错信息。\n\n**查看方法：**\n\n```bash\n# 查看完整输出\ncat slurm-12345.out\n\n# 只看最后 80 行（最常用，错误一般在末尾）\ntail -n 80 slurm-12345.out\n\n# 实时跟踪（作业还在跑时用）\ntail -f slurm-12345.out\n```\n\n---\n\n**所以，正确的排查思路是：**\n\n1. 作业还在队列里 → 用 `squeue -u $USER` 看状态\n2. 作业已经结束 → 直接看 `slurm-<作业号>.out` 文件，别指望 `sacct`\n\n如果你忘了作业号，可以用 `ls slurm-*.out` 列出所有输出文件，按时间排序找最新的那个。\n\n---\n\n**小建议：** 以后提交作业时，养成习惯记住作业号（`sbatch` 提交后终端会显示），或者提交后立刻记下来，这样找输出文件就方便多了。\n\n你现在是想查某个具体作业的结果吗？把作业号或文件名发我，我帮你定位。",
+          "error": null,
+          "elapsed_seconds": 5.035,
+          "rag_context_sha256": "f28e5c8d5eec80c5384ea9f70d40bac8f6d6901bc4e00ac25b902de8bf127e2f",
+          "rag_context_chars": 1775
+        },
+        "dev_qa_003": {
+          "response": "**不会停止，放心！** 😊\n\n这是 Slurm 调度系统的一个核心优点：**`sbatch` 提交的作业和你的终端完全无关**。\n\n具体来说：\n\n1. **作业由 Slurm 守护进程（slurmd）管理**，不是由你的 SSH 会话管理。只要集群节点正常运行，作业就会继续跑。\n\n2. **即使你关闭网页、断开 SSH、甚至关机**，已经提交的作业都会照常运行，直到：\n   - 作业正常结束\n   - 达到你设置的 `--time` 时间上限被强制终止\n   - 你主动用 `scancel` 取消\n\n3. **作业输出**会写入你提交时指定的文件（默认是 `slurm-<作业号>.out`），等你下次登录时用 `cat` 或 `tail` 查看即可。\n\n---\n\n**举个例子**：\n```bash\n# 你提交了作业\nsbatch train.sh\n# 输出：Submitted batch job 2049\n\n# 然后你直接关电脑睡觉去了\n# 第二天登录，作业可能已经跑完了\ncat slurm-2049.out   # 查看结果\n```\n\n---\n\n**需要注意的例外**：\n- 如果你用的是 **`srun` 交互式运行**（比如 `srun -p P107-A100 --gres=gpu:1 --time=01:00:00 python train.py`），那断开 SSH 作业就会中断。所以长时间任务一定要用 `sbatch` 提交脚本。\n\n---\n\n**小贴士**：如果你担心作业中途出问题，可以在脚本里加日志输出，比如：\n```bash\n#SBATCH --output=slurm-%j.out\n#SBATCH --error=slurm-%j.err\n```\n这样标准输出和错误信息会分开保存，方便排查问题。\n\n有什么其他疑问随时问！",
+          "error": null,
+          "elapsed_seconds": 5.777,
+          "rag_context_sha256": "a6b9494bfa7023e460c906671078584da9739d2af79fcebb8cb84cd493115600",
+          "rag_context_chars": 860
+        },
+        "dev_cmd_001": {
+          "response": "想看自己正在排队或运行的作业，用这条命令就行：\n\n```bash\nsqueue -u $USER\n```\n\n**解释一下：**\n\n- `squeue` 是 Slurm 的“查看作业队列”命令，会列出所有作业。\n- `-u $USER` 表示只看**你自己**的作业（`$USER` 会自动替换成你的用户名），这样就不会被别人的作业刷屏了。\n\n**输出怎么看？** 你会看到类似这样的表格：\n\n```\nJOBID  PARTITION  NAME     ST  TIME  NODELIST(REASON)\n12345  P107-A100  test     R   0:05  gpu01\n12346  Students   train    PD  0:00  (Resources)\n```\n\n- **JOBID**：作业编号，后面取消作业（`scancel`）或看输出文件（`slurm-<作业号>.out`）都要用到它。\n- **ST**：状态码，`R` = 运行中（RUNNING），`PD` = 排队中（PENDING）。\n- **TIME**：已经运行了多久。\n- **NODELIST(REASON)**：运行在哪个节点；如果是 `(Resources)` 就说明在等资源，`(Priority)` 说明优先级不够。\n\n如果你只想看某个分区的作业，比如 RTX5090 分区，可以加 `-p` 参数：\n\n```bash\nsqueue -u $USER -p P107-RTX5090\n```\n\n小提示：如果输出是空的，说明你当前没有排队或运行的作业，这是正常的。",
+          "error": null,
+          "elapsed_seconds": 5.012,
+          "rag_context_sha256": "550a5a35e33368b4db142914506208e8266819c3dc4599a21e37d65ebf6dc148",
+          "rag_context_chars": 1747
+        },
+        "dev_cmd_002": {
+          "response": "`#SBATCH --gres=gpu:1` 的意思是：**向 Slurm 申请 1 张 GPU 卡**。\n\n- `--gres` 是 Slurm 的通用资源（Generic Resource）申请参数，这里特指 GPU。\n- `gpu:1` 表示申请 **1 张** GPU。\n- 如果你写 `gpu:2`，就会申请 2 张；`gpu:4` 就是 4 张，以此类推。\n\n**注意**：申请到的 GPU 数量不能超过该分区单节点实际拥有的 GPU 数量。比如 `P107-A100` 分区如果每个节点有 8 张 A100，你最多申请 `gpu:8`。\n\n---\n\n**小提示**：在作业脚本里申请了 GPU 后，你的程序里也要正确使用它。比如 PyTorch 代码里用 `torch.cuda.set_device(0)` 或直接 `cuda:0` 来访问这张卡。如果申请了多张，可以用 `CUDA_VISIBLE_DEVICES` 环境变量来控制程序看到哪些卡。\n\n需要我帮你写一个完整的作业脚本示例吗？",
+          "error": null,
+          "elapsed_seconds": 4.412,
+          "rag_context_sha256": "012da328c5a13dd897ce83a3a629ca7dcdc07526a2b88c8c430cf662483d4e53",
+          "rag_context_chars": 2156
+        },
+        "dev_cmd_003": {
+          "response": "好问题！这个坑很多新手都踩过。\n\n**结论：命令行指定的分区会覆盖脚本里的 `#SBATCH` 设置。**\n\n也就是说，如果脚本里写的是：\n\n```bash\n#SBATCH --partition=P107-A100\n```\n\n但你提交时用了：\n\n```bash\nsbatch -p P107-RTX5090 job.sh\n```\n\n那么最终作业会跑在 **P107-RTX5090** 分区上，脚本里的 `P107-A100` 会被忽略。\n\n---\n\n**为什么？**\n\nSlurm 的规则是：**命令行参数的优先级高于脚本内的 `#SBATCH` 参数**。你可以把 `#SBATCH` 看成\"默认值\"，命令行参数是\"临时覆盖\"。\n\n---\n\n**一个实用建议：**\n\n如果你不确定脚本里写的是什么，提交前可以先看一眼：\n\n```bash\ngrep -i \"partition\" job.sh\n```\n\n这样能确认脚本里到底写了哪个分区，避免\"我以为跑在A100上，结果跑到了5090上\"的尴尬情况。\n\n---\n\n**小提醒：** 如果你想让脚本里的分区设置\"说了算\"，那就提交时**不要**在命令行加 `-p` 参数，直接 `sbatch job.sh` 就行。",
+          "error": null,
+          "elapsed_seconds": 4.128,
+          "rag_context_sha256": "4a43972c0f5fc3555c240ecf56bbc6db641ef6a807333102b0cf2c02c52a566c",
+          "rag_context_chars": 1318
+        },
+        "dev_diag_001": {
+          "response": "[DIAGNOSIS_TYPE: INVALID_QOS]\n\n同学你好，这个报错的意思是：**你提交作业时指定的 QoS 名称写错了，或者这个 QoS 对你当前使用的分区无效**。\n\n---\n\n### 先解释一下什么是 QoS\n\nQoS（服务质量）可以理解为“排队等级/资源套餐”。在咱们集群上，**每个分区都有自己对应的 QoS**，不能混用。比如：\n\n- 分区 `P107-A100` 对应 QoS `qos_p107-a100`\n- 分区 `P107-RTX5090` 对应 QoS `qos_p107-rtx5090`\n\n很多同学会犯的错就是把分区名和 QoS 名搞混，比如写了 `qos_p107`（少了后缀），或者把 A100 的 QoS 用在了 RTX5090 分区上。\n\n---\n\n### 排查步骤（按顺序执行）\n\n**第 1 步：查看你当前账号被允许使用哪些 QoS**\n\n```bash\nsacctmgr show assoc where user=$USER format=User,Account,Partition,QOS,DefaultQOS\n```\n\n> 注意：如果这条命令报错或没输出，也没关系，继续看第 2 步。\n\n**第 2 步：检查你提交脚本里的 `#SBATCH` 行**\n\n用 `cat` 查看你的提交脚本（假设叫 `train.sh`）：\n\n```bash\ncat train.sh\n```\n\n重点看这两行：\n\n```bash\n#SBATCH --partition=...\n#SBATCH --qos=...\n```\n\n**必须保证：**\n- `--partition` 和 `--qos` 是**配套**的（A100 分区配 `qos_p107-a100`，RTX5090 分区配 `qos_p107-rtx5090`）\n- QoS 名称**一字不差**，没有多余或缺少字符\n\n---\n\n### 正确的提交方式（直接复制）\n\n如果你用的是 **A100 分区**，脚本开头应该是：\n\n```bash\n#SBATCH --partition=P107-A100\n#SBATCH --qos=qos_p107-a100\n```\n\n如果你用的是 **RTX5090 分区**，脚本开头应该是：\n\n```bash\n#SBATCH --partition=P107-RTX5090\n#SBATCH --qos=qos_p107-rtx5090\n```\n\n---\n\n### 如果改完还报错\n\n那可能是账号权限问题（比如账号没被关联到该 QoS）。这时请把以下命令的输出发给我，我帮你进一步看：\n\n```bash\nsacctmgr show assoc where user=$USER format=User,Account,Partition,QOS,DefaultQOS\n```\n\n---\n\n**总结一句话**：先 `cat` 你的脚本，确认 `--partition` 和 `--qos` 是配套且拼写正确的，然后重新 `sbatch` 提交即可。",
+          "error": null,
+          "elapsed_seconds": 6.023,
+          "rag_context_sha256": "80616df7986e2659d763504afbaf84e8bac7776f0e740d699c663c5b3c88fc3c",
+          "rag_context_chars": 1462
+        },
+        "dev_diag_002": {
+          "response": "[DIAGNOSIS_TYPE: ENTRYPOINT_NOT_FOUND]\n\n同学你好，这个报错的意思是：**Slurm 作业脚本里指定的 Python 入口文件 `train.py` 不存在**，或者路径写错了。\n\n具体来说，`python: can't open file '/home/user/work/train.py'` 表示系统尝试运行 `/home/user/work/train.py` 这个文件，但找不到它。常见原因有：\n\n1. **路径写错了**（比如目录名拼错、少了一层目录）\n2. **文件确实不存在**（还没创建，或者被移动/删除了）\n3. **文件名大小写不对**（比如实际是 `Train.py`，脚本里写的是 `train.py`）\n\n---\n\n**排查步骤（按顺序执行）：**\n\n**第一步：确认文件是否真的存在**\n\n```bash\nls -la /home/user/work/\n```\n\n看看输出里有没有 `train.py`。如果没有，说明文件不在这个目录。\n\n**第二步：如果文件在别处，找到它的真实路径**\n\n```bash\nfind /home/user -name \"train.py\" 2>/dev/null\n```\n\n这会帮你找到 `train.py` 的实际位置。\n\n**第三步：检查你的提交脚本**\n\n```bash\ncat 你的提交脚本.sh\n```\n\n重点看 `python` 那一行，确认路径是否和实际一致。\n\n---\n\n**常见修复方法：**\n\n如果文件实际在 `/home/user/work/code/train.py`，就把脚本里的路径改成：\n\n```bash\npython /home/user/work/code/train.py\n```\n\n或者，如果你在脚本里已经 `cd` 到了项目目录，也可以直接用相对路径：\n\n```bash\ncd /home/user/work\npython train.py\n```\n\n---\n\n**小提示：**\n- 提交作业前，建议先在登录节点手动跑一下 `python train.py`，确认能正常运行再提交 Slurm。\n- 如果 `train.py` 里还要读取数据文件（比如 `data/train.csv`），也要确认数据文件路径正确，否则会报 `FileNotFoundError`。\n\n如果按上面步骤检查后还是不行，把 `ls -la` 的输出和你的提交脚本内容发给我，我帮你具体看。",
+          "error": null,
+          "elapsed_seconds": 5.292,
+          "rag_context_sha256": "e5acacefb800825258c949f68c57f139bded1715e3f12e5785dcb906df91607b",
+          "rag_context_chars": 1665
+        },
+        "dev_diag_003": {
+          "response": "[DIAGNOSIS_TYPE: TIMEOUT]\n\n同学你好，这个报错信息非常明确：**你的作业是因为“超时”被系统强制终止的**，不是程序本身写错了，也不是集群出故障了。\n\n**怎么读这段报错？**\n\n- `JOB 12345`：被终止的作业号是 12345\n- `CANCELLED AT 2026-08-21T10:30:00`：在 8 月 21 日上午 10:30 被取消\n- `DUE TO TIME LIMIT`：原因是达到了你申请的时间上限\n\n**为什么会这样？**\n\n你在提交作业时，脚本里写了 `#SBATCH --time=HH:MM:SS` 来申请运行时长。比如你写了 `--time=01:00:00`，但程序实际跑了 1 小时还没结束，系统就会在 1 小时整时强制杀掉它，防止它无限占用资源。\n\n**怎么确认和解决？**\n\n1. **先看作业输出**，确认它跑到哪一步被掐断的：\n```bash\ncat slurm-12345.out\n```\n（如果文件太长，用 `tail -n 50 slurm-12345.out` 看最后 50 行）\n\n2. **重新提交时，把时间上限调大**。比如原来申请了 1 小时，现在改成 2 小时：\n```bash\nsbatch --time=02:00:00 你的脚本.sh\n```\n或者直接编辑脚本里的 `#SBATCH --time=` 那一行再提交。\n\n**小提醒**：时间上限不是越大越好——申请时间越长，排队等待的时间可能越久。建议先估算一下程序大概要跑多久，留出 20%~30% 的余量即可。\n\n如果调大时间后还是超时，那说明程序本身可能有问题（比如死循环、数据量太大），到时候可以把 `slurm-12345.out` 的最后几行发给我，我帮你看看。",
+          "error": null,
+          "elapsed_seconds": 4.663,
+          "rag_context_sha256": "c2789c61b039cfc0862925a9a4d0647a0eb9bcc71a3174ed16619435e00caad4",
+          "rag_context_chars": 1763
+        },
+        "dev_diag_004": {
+          "response": "[DIAGNOSIS_TYPE: 正常完成]\n\n这个输出**不需要修复**，一切正常！\n\n让我帮你解读一下：\n\n- **`Job completed normally.`** — 作业正常结束，没有报错\n- **`Result: 10100`** — 这是你的程序计算出的结果（比如某个数值运算的答案）\n- **`Exit code: 0`** — 退出码为 0，表示程序成功执行完毕\n\n---\n\n**简单解释：**\n\n在 Linux/Slurm 中，程序结束时都会返回一个\"退出码\"：\n- **`0`** = 成功 ✅\n- **非 0**（如 1、2、127 等）= 出错 ❌\n\n你的作业退出码是 `0`，说明程序从头到尾都跑得很顺利，`10100` 就是它算出来的结果。\n\n---\n\n**如果你还想确认作业状态**，可以运行：\n\n```bash\nsqueue -u $USER\n```\n\n如果输出为空（没有列出你的作业），说明作业已经结束，且从上面的输出看是正常完成的。\n\n---\n\n**总结：** 这个输出是\"完美收官\"，不需要任何修复。放心继续下一步吧！如果后面遇到 `Exit code: 1` 或 `Traceback` 之类的输出，再来找我帮你排查 😊",
+          "error": null,
+          "elapsed_seconds": 3.738,
+          "rag_context_sha256": "c943eabf27499e07f8f217221fb3001f8f2aa9b34d7d78700d26920db6dc20dc",
+          "rag_context_chars": 1452
+        },
+        "dev_script_001": {
+          "response": "好的，这是一个适合初学者的最小 CPU 教学作业脚本。我帮你写好了，直接保存为 `submit.sh` 就能用：\n\n```bash\n#!/bin/bash\n#SBATCH --partition=Students\n#SBATCH --qos=qos_stu_default\n#SBATCH --job-name=sum_1_100\n#SBATCH --output=logs/slurm-%j.out\n#SBATCH --time=00:05:00\n\n# 显式进入项目目录（请改成你自己的实际路径）\ncd ~/hpc_tutorial\n\n# 创建日志目录（SBATCH 不会自动创建）\nmkdir -p logs\n\n# 加载 Python 环境\nmodule load python3.12\n\n# 运行 Python 计算 1 到 100 的和\npython3 -c \"\ntotal = sum(range(1, 101))\nprint(f'1 到 100 的和是: {total}')\n\"\n```\n\n**使用说明：**\n\n1. 把上面的内容保存为 `submit.sh`（可以用 `nano submit.sh` 或 `vim submit.sh`）\n2. 把脚本里的 `cd ~/hpc_tutorial` 改成你自己的项目目录（比如 `cd ~/myproject`）\n3. 提交作业：\n   ```bash\n   sbatch submit.sh\n   ```\n4. 查看作业状态：\n   ```bash\n   squeue -u $USER\n   ```\n5. 作业跑完后，查看输出：\n   ```bash\n   cat logs/slurm-<作业号>.out\n   ```\n\n**几个小提示：**\n- `--time=00:05:00` 表示最长运行 5 分钟，格式是 `时:分:秒`\n- `slurm-%j.out` 中的 `%j` 会自动替换成作业号，所以每次提交都会生成独立的日志文件\n- 日志会写到 `logs/` 目录下，脚本里已经帮你 `mkdir -p logs` 了，不用担心目录不存在\n\n如果提交时报错，把错误信息发给我，我帮你看。",
+          "error": null,
+          "elapsed_seconds": 4.981,
+          "rag_context_sha256": "0d147d13058994a36fb37332d0499f99c06195ae2f26d13d838bec8627107eec",
+          "rag_context_chars": 2063
+        },
+        "dev_script_002": {
+          "response": "好的，这是为你生成的 A100 单卡 CUDA 作业脚本：\n\n```bash\n#!/bin/bash\n#SBATCH --partition=P107-A100\n#SBATCH --qos=qos_p107-a100\n#SBATCH --job-name=vector_add\n#SBATCH --output=logs/slurm-%j.out\n#SBATCH --time=00:05:00\n#SBATCH --gres=gpu:1\n\n# 加载 CUDA 环境\nmodule load cuda/13.0\n\n# 切换到项目目录（请根据实际情况修改）\ncd ~/your_project_dir\n\n# 确保日志目录存在\nmkdir -p logs\n\n# 编译并运行\nnvcc -o vector_add vector_add.cu\n./vector_add\n```\n\n**使用说明：**\n1. 将上述内容保存为 `run_vector_add.sh` 文件\n2. 请将 `cd ~/your_project_dir` 改为你实际的代码目录路径\n3. 提交作业：`sbatch run_vector_add.sh`\n4. 查看作业状态：`squeue -u $USER`\n5. 运行结束后，日志输出在 `logs/slurm-<作业号>.out` 文件中\n\n注意：脚本中 `--time=00:05:00` 表示最长运行 5 分钟，如果超时作业会被强制终止。",
+          "error": null,
+          "elapsed_seconds": 4.047,
+          "rag_context_sha256": "79b94e174aa959bb89519afbeb91032abf7cf6201d79dbc3faeef292d2e1ec8c",
+          "rag_context_chars": 2177
+        }
+      }
+    }
+  }
+}

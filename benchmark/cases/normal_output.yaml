@@ -1,0 +1,92 @@
+# 正常输出案例 — 不应触发任何诊断规则
+# 这些案例验证"误报率"：Agent 不应该对正常输出发出告警
+
+cases:
+  - id: normal_001
+    rule_id: null
+    expected_type: UNKNOWN
+    source: "训练正常完成"
+    input: |
+      Epoch 1/10: loss=2.341, acc=0.12
+      Epoch 2/10: loss=1.876, acc=0.35
+      Epoch 10/10: loss=0.234, acc=0.91
+      Training complete. Model saved to checkpoints/best.pt
+
+  - id: normal_002
+    rule_id: null
+    expected_type: UNKNOWN
+    source: "sbatch 提交成功"
+    input: |
+      Submitted batch job 54321
+
+  - id: normal_003
+    rule_id: null
+    expected_type: UNKNOWN
+    source: "squeue 输出（作业排队中）"
+    input: |
+      JOBID PARTITION NAME USER ST TIME NODES CPUS NODELIST(REASON)
+      54321 P107-A100 train.py sa25232066 PD 0:00 1 4 (Resources)
+
+  - id: normal_004
+    rule_id: null
+    expected_type: UNKNOWN
+    source: "squeue 输出（作业运行中）"
+    input: |
+      JOBID PARTITION NAME USER ST TIME NODES CPUS NODELIST(REASON)
+      54321 P107-A100 train.py sa25232066 R 0:12:34 1 4 gpu-node-01
+
+  - id: normal_005
+    rule_id: null
+    expected_type: UNKNOWN
+    source: "module load 成功"
+    input: |
+      Loading cuda/13.107
+      Loading python3.12
+      Loading miniconda/py312
+
+  - id: normal_006
+    rule_id: null
+    expected_type: UNKNOWN
+    source: "pip install 成功"
+    input: |
+      Collecting numpy
+        Downloading numpy-1.26.4-cp312-cp312-linux_x86_64.whl (18.0 MB)
+      Installing collected packages: numpy
+      Successfully installed numpy-1.26.4
+
+  - id: normal_007
+    rule_id: null
+    expected_type: UNKNOWN
+    source: "正常 ls/cd 操作"
+    input: |
+      [sa25232066@tradmin-02 ~]$ ls
+      data  experiments  slurm-54321.out  train.sh
+      [sa25232066@tradmin-02 ~]$ cd experiments
+
+  - id: normal_008
+    rule_id: null
+    expected_type: UNKNOWN
+    source: "Python 正常输出（含 warning 但不是错误）"
+    input: |
+      UserWarning: The 'batch_size' argument is deprecated, use 'per_device_train_batch_size'
+      Training started...
+      Step 100/1000: loss=0.87
+
+  - id: normal_009
+    rule_id: null
+    expected_type: UNKNOWN
+    source: "作业成功完成后 scontrol 查询"
+    input: |
+      JobId=54321 JobName=train.py
+         UserId=sa25232066 GroupId=students
+         JobState=COMPLETED RunTime=00:45:12
+         Partition=P107-A100 QOS=qos_p107-a100
+
+  - id: normal_010
+    rule_id: null
+    expected_type: UNKNOWN
+    source: "git 操作正常"
+    input: |
+      On branch main
+      Your branch is up to date with 'origin/main'.
+      nothing to commit, working tree clean

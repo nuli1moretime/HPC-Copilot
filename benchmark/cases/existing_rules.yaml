@@ -1,0 +1,232 @@
+# 现有 8 条规则的测试案例（含真实变体）
+# 每条规则 3-5 个变体，覆盖不同表述方式
+
+cases:
+  # ═══ INVALID_QOS ═══
+  - id: invalid_qos_001
+    rule_id: invalid_qos
+    expected_type: INVALID_QOS
+    source: "sbatch 提交时直接报错"
+    input: |
+      sbatch: error: Batch job submission failed: Invalid qos specification
+
+  - id: invalid_qos_002
+    rule_id: invalid_qos
+    expected_type: INVALID_QOS
+    source: "带请求上下文的报错"
+    input: |
+      $ sbatch train.sh
+      sbatch: error: Batch job submission failed: Invalid qos specification
+      sbatch: error: Unable to allocate resources
+
+  - id: invalid_qos_003
+    rule_id: invalid_qos
+    expected_type: INVALID_QOS
+    source: "脚本内 #SBATCH --qos 写错"
+    input: |
+      sbatch: error: Batch job submission failed: Invalid qos specification
+      Hint: QoS 'qos_p107' is not valid for partition P107-A100
+
+  # ═══ INVALID_PARTITION ═══
+  - id: invalid_partition_001
+    rule_id: invalid_partition
+    expected_type: INVALID_PARTITION
+    source: "真实平台 (107.ustc.edu.cn 2026-08-27)"
+    input: |
+      sbatch: error: invalid partition specified: DO_NOT_EXIST
+      sbatch: error: Batch job submission failed: Invalid partition name specified
+
+  - id: invalid_partition_002
+    rule_id: invalid_partition
+    expected_type: INVALID_PARTITION
+    source: "旧版 Slurm 文档格式"
+    input: |
+      sbatch: error: Batch job submission failed: Invalid partition specification
+
+  - id: invalid_partition_003
+    rule_id: invalid_partition
+    expected_type: INVALID_PARTITION
+    source: "带错误详情的变体"
+    input: |
+      sbatch: error: Batch job submission failed: Invalid partition specification
+      sbatch: error: Partition 'P107-V100' not found
+
+  # ═══ WORKDIR_NOT_FOUND ═══
+  - id: workdir_001
+    rule_id: workdir_not_found
+    expected_type: WORKDIR_NOT_FOUND
+    source: "提交后目录被删除"
+    input: |
+      slurmstepd: error: chdir(/home/user/deleted_dir) failed: No such file or directory
+      slurmstepd: error: _run_prolog: chdir failed
+
+  - id: workdir_002
+    rule_id: workdir_not_found
+    expected_type: WORKDIR_NOT_FOUND
+    source: "getcwd 失败"
+    input: |
+      slurmstepd: error: getcwd failed: No such file or directory
+      slurmstepd: error: Unable to set working directory
+
+  - id: workdir_003
+    rule_id: workdir_not_found
+    expected_type: WORKDIR_NOT_FOUND
+    source: "can't open working dir"
+    input: |
+      slurmstepd: error: can't open /data/tmp/exp42 working directory
+
+  # ═══ ENTRYPOINT_NOT_FOUND ═══
+  - id: entrypoint_001
+    rule_id: entrypoint_not_found
+    expected_type: ENTRYPOINT_NOT_FOUND
+    source: "真实平台 (107.ustc.edu.cn 2026-08-27)"
+    input: |
+      Running nonexistent script...
+      python: can't open file '/home/scc/sa25232066/benchmark_test/nonexistent_script.py': [Errno 2] No such file or directory
+
+  - id: entrypoint_002
+    rule_id: entrypoint_not_found
+    expected_type: ENTRYPOINT_NOT_FOUND
+    source: "FileNotFoundError 异常"
+    input: |
+      Traceback (most recent call last):
+        File "run.py", line 5, in <module>
+          data = open("data/train.csv")
+      FileNotFoundError: [Errno 2] No such file or directory: 'data/train.csv'
+
+  - id: entrypoint_003
+    rule_id: entrypoint_not_found
+    expected_type: ENTRYPOINT_NOT_FOUND
+    source: "bash 找不到可执行文件"
+    input: |
+      /var/spool/slurm/job12345/slurm_script: line 12: ./train.sh: No such file or directory
+
+  # ═══ MODULE_NOT_FOUND ═══
+  - id: module_001
+    rule_id: module_not_found
+    expected_type: MODULE_NOT_FOUND
+    source: "真实平台 (107.ustc.edu.cn 2026-08-27)"
+    input: |
+      ERROR: Unable to locate a modulefile for 'cuda/99.99'
+      Should not reach here
+
+  - id: module_002
+    rule_id: module_not_found
+    expected_type: MODULE_NOT_FOUND
+    source: "Lmod 格式变体"
+    input: |
+      Lmod has detected the following error: The following module(s) are unknown: 'cuda/12.0'
+
+  - id: module_003
+    rule_id: module_not_found
+    expected_type: MODULE_NOT_FOUND
+    source: "module spider 提示"
+    input: |
+      Lmod has detected the following error:
+      Unable to find: "tensorflow/2.15".
+      Searching modules...
+
+  # ═══ TIMEOUT ═══
+  - id: timeout_001
+    rule_id: timeout
+    expected_type: TIMEOUT
+    source: "标准 Slurm 超时取消"
+    input: |
+      slurmstepd: error: *** JOB 12345 ON gpu-node-01 CANCELLED AT 2026-07-29T10:30:00 DUE TO TIME LIMIT ***
+
+  - id: timeout_002
+    rule_id: timeout
+    expected_type: TIMEOUT
+    source: "sacct 风格的 state 输出（虽然平台没有 sacct，但用户可能从其他地方看到）"
+    input: |
+      JobID    State      Reason
+      -----    -----      ------
+      12345    TIMEOUT    TimeLimit
+
+  - id: timeout_003
+    rule_id: timeout
+    expected_type: TIMEOUT
+    source: "作业输出中的超时标记"
+    input: |
+      Epoch 3/10: loss=0.543
+      Epoch 4/10: loss=0.421
+      slurmstepd: error: Detected job exceeded time limit, terminating
+
+  - id: timeout_004
+    rule_id: timeout
+    expected_type: TIMEOUT
+    source: "CANCELLED AT 变体"
+    input: |
+      slurmstepd: error: *** JOB 67890 ON node03 CANCELLED AT 2026-08-01T02:15:33 DUE TO TIME LIMIT ***
+
+  # ═══ OUT_OF_MEMORY ═══
+  - id: oom_001
+    rule_id: out_of_memory
+    expected_type: OUT_OF_MEMORY
+    source: "Linux OOM killer"
+    input: |
+      slurmstepd: error: Detected 1 oom-kill event(s) in StepId=12345.batch cgroup
+      Some of the step processes have been killed
+
+  - id: oom_002
+    rule_id: out_of_memory
+    expected_type: OUT_OF_MEMORY
+    source: "memory limit exceeded"
+    input: |
+      slurmstepd: error: Exceeded job memory limit at some point
+      slurmstepd: error: Job 12345 exceeded memory limit
+
+  - id: oom_003
+    rule_id: out_of_memory
+    expected_type: OUT_OF_MEMORY
+    source: "Killed 信号"
+    input: |
+      Training model...
+      Loading dataset (12GB)...
+      Killed
+
+  - id: oom_004
+    rule_id: out_of_memory
+    expected_type: OUT_OF_MEMORY
+    source: "oom-kill 内核日志"
+    input: |
+      [12345.678] oom-kill: invoked oom-killer: gfp_mask=0x6200ca(GFP_HIGHUSER_MOVABLE)
+      [12345.679] Out of memory: Killed process 98765 (python) total-vm:32000000kB
+
+  # ═══ PROGRAM_EXIT_NONZERO ═══
+  - id: exit_nonzero_001
+    rule_id: program_exit_nonzero
+    expected_type: PROGRAM_EXIT_NONZERO
+    source: "真实平台 (107.ustc.edu.cn 2026-08-27)"
+    input: |
+      Testing runtime exception...
+      Traceback (most recent call last):
+        File "<string>", line 1, in <module>
+      ZeroDivisionError: division by zero
+
+  - id: exit_nonzero_002
+    rule_id: program_exit_nonzero
+    expected_type: PROGRAM_EXIT_NONZERO
+    source: "ModuleNotFoundError"
+    input: |
+      Traceback (most recent call last):
+        File "train.py", line 1, in <module>
+          import torch
+      ModuleNotFoundError: No module named 'torch'
+
+  - id: exit_nonzero_003
+    rule_id: program_exit_nonzero
+    expected_type: PROGRAM_EXIT_NONZERO
+    source: "slurmstepd exit code 报告"
+    input: |
+      slurmstepd: error: Detected job exit code 1
+      Job completed with exit code 1
+
+  - id: exit_nonzero_004
+    rule_id: program_exit_nonzero
+    expected_type: PROGRAM_EXIT_NONZERO
+    source: "CUDA error 导致非零退出"
+    input: |
+      RuntimeError: CUDA error: device-side assert triggered
+      CUDA kernel errors might be asynchronously reported at some other API call
+      exit code 1

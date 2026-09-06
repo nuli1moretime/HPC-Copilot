@@ -1,0 +1,796 @@
+{
+  "created_at_utc": "2026-09-05T16:49:08.162963+00:00",
+  "implemented_rule_ids": [
+    "account_issue",
+    "conda_env",
+    "cuda_device",
+    "dependency",
+    "disk_quota",
+    "entrypoint_not_found",
+    "gpu_oom",
+    "invalid_partition",
+    "invalid_qos",
+    "invalid_time",
+    "module_not_found",
+    "node_fail",
+    "out_of_memory",
+    "permission_denied",
+    "preempted",
+    "program_exit_nonzero",
+    "timeout",
+    "workdir_not_found"
+  ],
+  "summary": {
+    "all_cases": 74,
+    "all_passed": 74,
+    "all_accuracy": 1.0,
+    "current_scope_cases": 74,
+    "current_scope_passed": 74,
+    "current_scope_accuracy": 1.0,
+    "all_macro_f1": 1.0,
+    "current_scope_macro_f1": 1.0,
+    "normal_cases": 14,
+    "false_positives": 0,
+    "false_positive_rate": 0.0
+  },
+  "by_file": {
+    "edge_cases.yaml": {
+      "total": 10,
+      "passed": 10
+    },
+    "existing_rules.yaml": {
+      "total": 27,
+      "passed": 27
+    },
+    "new_rules.yaml": {
+      "total": 27,
+      "passed": 27
+    },
+    "normal_output.yaml": {
+      "total": 10,
+      "passed": 10
+    }
+  },
+  "details": [
+    {
+      "id": "edge_001",
+      "source_file": "edge_cases.yaml",
+      "expected_type": "UNKNOWN",
+      "actual_type": "UNKNOWN",
+      "expected_rule": null,
+      "actual_rule": null,
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "edge_002",
+      "source_file": "edge_cases.yaml",
+      "expected_type": "UNKNOWN",
+      "actual_type": "UNKNOWN",
+      "expected_rule": null,
+      "actual_rule": null,
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "edge_003",
+      "source_file": "edge_cases.yaml",
+      "expected_type": "UNKNOWN",
+      "actual_type": "UNKNOWN",
+      "expected_rule": null,
+      "actual_rule": null,
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "edge_004",
+      "source_file": "edge_cases.yaml",
+      "expected_type": "TIMEOUT",
+      "actual_type": "TIMEOUT",
+      "expected_rule": "timeout",
+      "actual_rule": "timeout",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "edge_005",
+      "source_file": "edge_cases.yaml",
+      "expected_type": "INVALID_QOS",
+      "actual_type": "INVALID_QOS",
+      "expected_rule": "invalid_qos",
+      "actual_rule": "invalid_qos",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "edge_006",
+      "source_file": "edge_cases.yaml",
+      "expected_type": "OUT_OF_MEMORY",
+      "actual_type": "OUT_OF_MEMORY",
+      "expected_rule": "out_of_memory",
+      "actual_rule": "out_of_memory",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "edge_007",
+      "source_file": "edge_cases.yaml",
+      "expected_type": "GPU_OOM",
+      "actual_type": "GPU_OOM",
+      "expected_rule": "gpu_oom",
+      "actual_rule": "gpu_oom",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "edge_008",
+      "source_file": "edge_cases.yaml",
+      "expected_type": "UNKNOWN",
+      "actual_type": "UNKNOWN",
+      "expected_rule": null,
+      "actual_rule": null,
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "edge_009",
+      "source_file": "edge_cases.yaml",
+      "expected_type": "MODULE_NOT_FOUND",
+      "actual_type": "MODULE_NOT_FOUND",
+      "expected_rule": "module_not_found",
+      "actual_rule": "module_not_found",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "edge_010",
+      "source_file": "edge_cases.yaml",
+      "expected_type": "ENTRYPOINT_NOT_FOUND",
+      "actual_type": "ENTRYPOINT_NOT_FOUND",
+      "expected_rule": "entrypoint_not_found",
+      "actual_rule": "entrypoint_not_found",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "invalid_qos_001",
+      "source_file": "existing_rules.yaml",
+      "expected_type": "INVALID_QOS",
+      "actual_type": "INVALID_QOS",
+      "expected_rule": "invalid_qos",
+      "actual_rule": "invalid_qos",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "invalid_qos_002",
+      "source_file": "existing_rules.yaml",
+      "expected_type": "INVALID_QOS",
+      "actual_type": "INVALID_QOS",
+      "expected_rule": "invalid_qos",
+      "actual_rule": "invalid_qos",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "invalid_qos_003",
+      "source_file": "existing_rules.yaml",
+      "expected_type": "INVALID_QOS",
+      "actual_type": "INVALID_QOS",
+      "expected_rule": "invalid_qos",
+      "actual_rule": "invalid_qos",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "invalid_partition_001",
+      "source_file": "existing_rules.yaml",
+      "expected_type": "INVALID_PARTITION",
+      "actual_type": "INVALID_PARTITION",
+      "expected_rule": "invalid_partition",
+      "actual_rule": "invalid_partition",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "invalid_partition_002",
+      "source_file": "existing_rules.yaml",
+      "expected_type": "INVALID_PARTITION",
+      "actual_type": "INVALID_PARTITION",
+      "expected_rule": "invalid_partition",
+      "actual_rule": "invalid_partition",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "invalid_partition_003",
+      "source_file": "existing_rules.yaml",
+      "expected_type": "INVALID_PARTITION",
+      "actual_type": "INVALID_PARTITION",
+      "expected_rule": "invalid_partition",
+      "actual_rule": "invalid_partition",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "workdir_001",
+      "source_file": "existing_rules.yaml",
+      "expected_type": "WORKDIR_NOT_FOUND",
+      "actual_type": "WORKDIR_NOT_FOUND",
+      "expected_rule": "workdir_not_found",
+      "actual_rule": "workdir_not_found",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "workdir_002",
+      "source_file": "existing_rules.yaml",
+      "expected_type": "WORKDIR_NOT_FOUND",
+      "actual_type": "WORKDIR_NOT_FOUND",
+      "expected_rule": "workdir_not_found",
+      "actual_rule": "workdir_not_found",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "workdir_003",
+      "source_file": "existing_rules.yaml",
+      "expected_type": "WORKDIR_NOT_FOUND",
+      "actual_type": "WORKDIR_NOT_FOUND",
+      "expected_rule": "workdir_not_found",
+      "actual_rule": "workdir_not_found",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "entrypoint_001",
+      "source_file": "existing_rules.yaml",
+      "expected_type": "ENTRYPOINT_NOT_FOUND",
+      "actual_type": "ENTRYPOINT_NOT_FOUND",
+      "expected_rule": "entrypoint_not_found",
+      "actual_rule": "entrypoint_not_found",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "entrypoint_002",
+      "source_file": "existing_rules.yaml",
+      "expected_type": "ENTRYPOINT_NOT_FOUND",
+      "actual_type": "ENTRYPOINT_NOT_FOUND",
+      "expected_rule": "entrypoint_not_found",
+      "actual_rule": "entrypoint_not_found",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "entrypoint_003",
+      "source_file": "existing_rules.yaml",
+      "expected_type": "ENTRYPOINT_NOT_FOUND",
+      "actual_type": "ENTRYPOINT_NOT_FOUND",
+      "expected_rule": "entrypoint_not_found",
+      "actual_rule": "entrypoint_not_found",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "module_001",
+      "source_file": "existing_rules.yaml",
+      "expected_type": "MODULE_NOT_FOUND",
+      "actual_type": "MODULE_NOT_FOUND",
+      "expected_rule": "module_not_found",
+      "actual_rule": "module_not_found",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "module_002",
+      "source_file": "existing_rules.yaml",
+      "expected_type": "MODULE_NOT_FOUND",
+      "actual_type": "MODULE_NOT_FOUND",
+      "expected_rule": "module_not_found",
+      "actual_rule": "module_not_found",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "module_003",
+      "source_file": "existing_rules.yaml",
+      "expected_type": "MODULE_NOT_FOUND",
+      "actual_type": "MODULE_NOT_FOUND",
+      "expected_rule": "module_not_found",
+      "actual_rule": "module_not_found",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "timeout_001",
+      "source_file": "existing_rules.yaml",
+      "expected_type": "TIMEOUT",
+      "actual_type": "TIMEOUT",
+      "expected_rule": "timeout",
+      "actual_rule": "timeout",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "timeout_002",
+      "source_file": "existing_rules.yaml",
+      "expected_type": "TIMEOUT",
+      "actual_type": "TIMEOUT",
+      "expected_rule": "timeout",
+      "actual_rule": "timeout",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "timeout_003",
+      "source_file": "existing_rules.yaml",
+      "expected_type": "TIMEOUT",
+      "actual_type": "TIMEOUT",
+      "expected_rule": "timeout",
+      "actual_rule": "timeout",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "timeout_004",
+      "source_file": "existing_rules.yaml",
+      "expected_type": "TIMEOUT",
+      "actual_type": "TIMEOUT",
+      "expected_rule": "timeout",
+      "actual_rule": "timeout",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "oom_001",
+      "source_file": "existing_rules.yaml",
+      "expected_type": "OUT_OF_MEMORY",
+      "actual_type": "OUT_OF_MEMORY",
+      "expected_rule": "out_of_memory",
+      "actual_rule": "out_of_memory",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "oom_002",
+      "source_file": "existing_rules.yaml",
+      "expected_type": "OUT_OF_MEMORY",
+      "actual_type": "OUT_OF_MEMORY",
+      "expected_rule": "out_of_memory",
+      "actual_rule": "out_of_memory",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "oom_003",
+      "source_file": "existing_rules.yaml",
+      "expected_type": "OUT_OF_MEMORY",
+      "actual_type": "OUT_OF_MEMORY",
+      "expected_rule": "out_of_memory",
+      "actual_rule": "out_of_memory",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "oom_004",
+      "source_file": "existing_rules.yaml",
+      "expected_type": "OUT_OF_MEMORY",
+      "actual_type": "OUT_OF_MEMORY",
+      "expected_rule": "out_of_memory",
+      "actual_rule": "out_of_memory",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "exit_nonzero_001",
+      "source_file": "existing_rules.yaml",
+      "expected_type": "PROGRAM_EXIT_NONZERO",
+      "actual_type": "PROGRAM_EXIT_NONZERO",
+      "expected_rule": "program_exit_nonzero",
+      "actual_rule": "program_exit_nonzero",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "exit_nonzero_002",
+      "source_file": "existing_rules.yaml",
+      "expected_type": "PROGRAM_EXIT_NONZERO",
+      "actual_type": "PROGRAM_EXIT_NONZERO",
+      "expected_rule": "program_exit_nonzero",
+      "actual_rule": "program_exit_nonzero",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "exit_nonzero_003",
+      "source_file": "existing_rules.yaml",
+      "expected_type": "PROGRAM_EXIT_NONZERO",
+      "actual_type": "PROGRAM_EXIT_NONZERO",
+      "expected_rule": "program_exit_nonzero",
+      "actual_rule": "program_exit_nonzero",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "exit_nonzero_004",
+      "source_file": "existing_rules.yaml",
+      "expected_type": "PROGRAM_EXIT_NONZERO",
+      "actual_type": "PROGRAM_EXIT_NONZERO",
+      "expected_rule": "program_exit_nonzero",
+      "actual_rule": "program_exit_nonzero",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "disk_quota_001",
+      "source_file": "new_rules.yaml",
+      "expected_type": "DISK_QUOTA",
+      "actual_type": "DISK_QUOTA",
+      "expected_rule": "disk_quota",
+      "actual_rule": "disk_quota",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "disk_quota_002",
+      "source_file": "new_rules.yaml",
+      "expected_type": "DISK_QUOTA",
+      "actual_type": "DISK_QUOTA",
+      "expected_rule": "disk_quota",
+      "actual_rule": "disk_quota",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "disk_quota_003",
+      "source_file": "new_rules.yaml",
+      "expected_type": "DISK_QUOTA",
+      "actual_type": "DISK_QUOTA",
+      "expected_rule": "disk_quota",
+      "actual_rule": "disk_quota",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "permission_001",
+      "source_file": "new_rules.yaml",
+      "expected_type": "PERMISSION_DENIED",
+      "actual_type": "PERMISSION_DENIED",
+      "expected_rule": "permission_denied",
+      "actual_rule": "permission_denied",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "permission_002",
+      "source_file": "new_rules.yaml",
+      "expected_type": "PERMISSION_DENIED",
+      "actual_type": "PERMISSION_DENIED",
+      "expected_rule": "permission_denied",
+      "actual_rule": "permission_denied",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "permission_003",
+      "source_file": "new_rules.yaml",
+      "expected_type": "PERMISSION_DENIED",
+      "actual_type": "PERMISSION_DENIED",
+      "expected_rule": "permission_denied",
+      "actual_rule": "permission_denied",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "gpu_oom_001",
+      "source_file": "new_rules.yaml",
+      "expected_type": "GPU_OOM",
+      "actual_type": "GPU_OOM",
+      "expected_rule": "gpu_oom",
+      "actual_rule": "gpu_oom",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "gpu_oom_002",
+      "source_file": "new_rules.yaml",
+      "expected_type": "GPU_OOM",
+      "actual_type": "GPU_OOM",
+      "expected_rule": "gpu_oom",
+      "actual_rule": "gpu_oom",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "gpu_oom_003",
+      "source_file": "new_rules.yaml",
+      "expected_type": "GPU_OOM",
+      "actual_type": "GPU_OOM",
+      "expected_rule": "gpu_oom",
+      "actual_rule": "gpu_oom",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "gpu_oom_004",
+      "source_file": "new_rules.yaml",
+      "expected_type": "GPU_OOM",
+      "actual_type": "GPU_OOM",
+      "expected_rule": "gpu_oom",
+      "actual_rule": "gpu_oom",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "node_fail_001",
+      "source_file": "new_rules.yaml",
+      "expected_type": "NODE_FAIL",
+      "actual_type": "NODE_FAIL",
+      "expected_rule": "node_fail",
+      "actual_rule": "node_fail",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "node_fail_002",
+      "source_file": "new_rules.yaml",
+      "expected_type": "NODE_FAIL",
+      "actual_type": "NODE_FAIL",
+      "expected_rule": "node_fail",
+      "actual_rule": "node_fail",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "node_fail_003",
+      "source_file": "new_rules.yaml",
+      "expected_type": "NODE_FAIL",
+      "actual_type": "NODE_FAIL",
+      "expected_rule": "node_fail",
+      "actual_rule": "node_fail",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "preempted_001",
+      "source_file": "new_rules.yaml",
+      "expected_type": "PREEMPTED",
+      "actual_type": "PREEMPTED",
+      "expected_rule": "preempted",
+      "actual_rule": "preempted",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "preempted_002",
+      "source_file": "new_rules.yaml",
+      "expected_type": "PREEMPTED",
+      "actual_type": "PREEMPTED",
+      "expected_rule": "preempted",
+      "actual_rule": "preempted",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "conda_001",
+      "source_file": "new_rules.yaml",
+      "expected_type": "CONDA_ENV",
+      "actual_type": "CONDA_ENV",
+      "expected_rule": "conda_env",
+      "actual_rule": "conda_env",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "conda_002",
+      "source_file": "new_rules.yaml",
+      "expected_type": "CONDA_ENV",
+      "actual_type": "CONDA_ENV",
+      "expected_rule": "conda_env",
+      "actual_rule": "conda_env",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "conda_003",
+      "source_file": "new_rules.yaml",
+      "expected_type": "CONDA_ENV",
+      "actual_type": "CONDA_ENV",
+      "expected_rule": "conda_env",
+      "actual_rule": "conda_env",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "cuda_device_001",
+      "source_file": "new_rules.yaml",
+      "expected_type": "CUDA_DEVICE",
+      "actual_type": "CUDA_DEVICE",
+      "expected_rule": "cuda_device",
+      "actual_rule": "cuda_device",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "cuda_device_002",
+      "source_file": "new_rules.yaml",
+      "expected_type": "CUDA_DEVICE",
+      "actual_type": "CUDA_DEVICE",
+      "expected_rule": "cuda_device",
+      "actual_rule": "cuda_device",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "cuda_device_003",
+      "source_file": "new_rules.yaml",
+      "expected_type": "CUDA_DEVICE",
+      "actual_type": "CUDA_DEVICE",
+      "expected_rule": "cuda_device",
+      "actual_rule": "cuda_device",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "invalid_time_001",
+      "source_file": "new_rules.yaml",
+      "expected_type": "INVALID_TIME",
+      "actual_type": "INVALID_TIME",
+      "expected_rule": "invalid_time",
+      "actual_rule": "invalid_time",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "invalid_time_002",
+      "source_file": "new_rules.yaml",
+      "expected_type": "INVALID_TIME",
+      "actual_type": "INVALID_TIME",
+      "expected_rule": "invalid_time",
+      "actual_rule": "invalid_time",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "dependency_001",
+      "source_file": "new_rules.yaml",
+      "expected_type": "DEPENDENCY",
+      "actual_type": "DEPENDENCY",
+      "expected_rule": "dependency",
+      "actual_rule": "dependency",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "dependency_002",
+      "source_file": "new_rules.yaml",
+      "expected_type": "DEPENDENCY",
+      "actual_type": "DEPENDENCY",
+      "expected_rule": "dependency",
+      "actual_rule": "dependency",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "account_001",
+      "source_file": "new_rules.yaml",
+      "expected_type": "ACCOUNT_ISSUE",
+      "actual_type": "ACCOUNT_ISSUE",
+      "expected_rule": "account_issue",
+      "actual_rule": "account_issue",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "account_002",
+      "source_file": "new_rules.yaml",
+      "expected_type": "ACCOUNT_ISSUE",
+      "actual_type": "ACCOUNT_ISSUE",
+      "expected_rule": "account_issue",
+      "actual_rule": "account_issue",
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "normal_001",
+      "source_file": "normal_output.yaml",
+      "expected_type": "UNKNOWN",
+      "actual_type": "UNKNOWN",
+      "expected_rule": null,
+      "actual_rule": null,
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "normal_002",
+      "source_file": "normal_output.yaml",
+      "expected_type": "UNKNOWN",
+      "actual_type": "UNKNOWN",
+      "expected_rule": null,
+      "actual_rule": null,
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "normal_003",
+      "source_file": "normal_output.yaml",
+      "expected_type": "UNKNOWN",
+      "actual_type": "UNKNOWN",
+      "expected_rule": null,
+      "actual_rule": null,
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "normal_004",
+      "source_file": "normal_output.yaml",
+      "expected_type": "UNKNOWN",
+      "actual_type": "UNKNOWN",
+      "expected_rule": null,
+      "actual_rule": null,
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "normal_005",
+      "source_file": "normal_output.yaml",
+      "expected_type": "UNKNOWN",
+      "actual_type": "UNKNOWN",
+      "expected_rule": null,
+      "actual_rule": null,
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "normal_006",
+      "source_file": "normal_output.yaml",
+      "expected_type": "UNKNOWN",
+      "actual_type": "UNKNOWN",
+      "expected_rule": null,
+      "actual_rule": null,
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "normal_007",
+      "source_file": "normal_output.yaml",
+      "expected_type": "UNKNOWN",
+      "actual_type": "UNKNOWN",
+      "expected_rule": null,
+      "actual_rule": null,
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "normal_008",
+      "source_file": "normal_output.yaml",
+      "expected_type": "UNKNOWN",
+      "actual_type": "UNKNOWN",
+      "expected_rule": null,
+      "actual_rule": null,
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "normal_009",
+      "source_file": "normal_output.yaml",
+      "expected_type": "UNKNOWN",
+      "actual_type": "UNKNOWN",
+      "expected_rule": null,
+      "actual_rule": null,
+      "in_current_scope": true,
+      "passed": true
+    },
+    {
+      "id": "normal_010",
+      "source_file": "normal_output.yaml",
+      "expected_type": "UNKNOWN",
+      "actual_type": "UNKNOWN",
+      "expected_rule": null,
+      "actual_rule": null,
+      "in_current_scope": true,
+      "passed": true
+    }
+  ]
+}

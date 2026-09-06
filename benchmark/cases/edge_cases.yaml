@@ -1,0 +1,86 @@
+# 边界情况测试案例
+# 验证诊断引擎在特殊输入下的行为
+
+cases:
+  - id: edge_001
+    rule_id: null
+    expected_type: UNKNOWN
+    source: "空输入"
+    input: ""
+
+  - id: edge_002
+    rule_id: null
+    expected_type: UNKNOWN
+    source: "纯空白"
+    input: |
+
+
+
+  - id: edge_003
+    rule_id: null
+    expected_type: UNKNOWN
+    source: "单字符"
+    input: "x"
+
+  - id: edge_004
+    rule_id: timeout
+    expected_type: TIMEOUT
+    source: "多种错误混合 — 应匹配第一个出现的规则（TIMEOUT 在 program_exit 之前）"
+    input: |
+      Traceback (most recent call last):
+        File "train.py", line 10
+      slurmstepd: error: *** JOB 99999 ON node01 CANCELLED AT 2026-07-29T10:00:00 DUE TO TIME LIMIT ***
+
+  - id: edge_005
+    rule_id: invalid_qos
+    expected_type: INVALID_QOS
+    source: "错误信息前后有大量噪声"
+    input: |
+      [2026-07-29 10:00:01] INFO: Initializing job scheduler...
+      [2026-07-29 10:00:02] DEBUG: Checking resource allocation...
+      [2026-07-29 10:00:03] WARN: Retrying connection to controller...
+      sbatch: error: Batch job submission failed: Invalid qos specification
+      [2026-07-29 10:00:04] INFO: Cleanup...
+
+  - id: edge_006
+    rule_id: out_of_memory
+    expected_type: OUT_OF_MEMORY
+    source: "OOM 关键词出现在长日志中间"
+    input: |
+      Loading dataset: 10%|####                    | 2.1GB/20GB
+      Loading dataset: 50%|##################    | 10GB/20GB
+      Loading dataset: 95%|####################  | 19GB/20GB
+      slurmstepd: error: Detected 1 oom-kill event(s) in StepId=12345.batch
+      Loading dataset: FAILED
+
+  - id: edge_007
+    rule_id: gpu_oom
+    expected_type: GPU_OOM
+    source: "中文报错信息混合"
+    input: |
+      正在加载模型...
+      torch.cuda.OutOfMemoryError: CUDA out of memory. Tried to allocate 2.00 GiB.
+      错误：显存不足，请减小 batch_size 或使用更小的模型
+
+  - id: edge_008
+    rule_id: null
+    expected_type: UNKNOWN
+    source: "包含 error 关键词但实际是正常日志"
+    input: |
+      Checking error handling module... OK
+      Testing error recovery mechanism... PASSED
+      All error scenarios validated successfully.
+
+  - id: edge_009
+    rule_id: module_not_found
+    expected_type: MODULE_NOT_FOUND
+    source: "大小写混合"
+    input: |
+      lmod has detected the following error: The following module(s) are unknown: 'CUDA/12.0'
+
+  - id: edge_010
+    rule_id: entrypoint_not_found
+    expected_type: ENTRYPOINT_NOT_FOUND
+    source: "路径含空格报错"
+    input: |
+      python: can't open file 'my project/train v2.py': [Errno 2] No such file or directory

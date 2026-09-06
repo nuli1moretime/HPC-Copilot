@@ -1,0 +1,29 @@
+# RAG 模块配置
+# 知识库文档目录（相对于项目根目录或绝对路径）
+knowledge_dir: "docs/knowledge"
+
+# FAISS 索引缓存目录（相对于项目根目录）
+index_dir: "data/rag_index"
+
+# Embedding 模型配置
+embedding:
+  model: "qwen3-embedding"
+  # api_base 和 api_key 从连接配置继承（与 LLM 相同）
+
+# Reranker 配置（可选，设为 enabled: false 可跳过）
+# ⚠️ 性能提示：reranker 每次检索都要多打一次网关 API（qwen3-reranker），
+# 在 USTC Ascend 网关上通常 +2-10s。对 top_k=3 的场景收益有限，默认关闭。
+# 如需对比效果，改成 true 并重启后端。
+reranker:
+  enabled: false
+  model: "qwen3-reranker"
+
+# 检索参数
+retrieval:
+  top_k: 3           # 最终返回的文档块数
+  search_top_k: 10   # FAISS 初筛数量（reranker 关时可直接取 top_k）
+  hybrid_enabled: true     # 本地语义+关键词混合排序，不增加API调用
+  lexical_weight: 0.35     # 关键词覆盖度权重；仅在FAISS候选内部重排
+
+# 开关（方便演示时对比有/无 RAG 的效果）
+enabled: true

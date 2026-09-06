@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Terminal from './components/Terminal'
 import ChatPanel from './components/ChatPanel'
-import ConnectionSettings from './components/ConnectionSettings'
+import ConnectionSettings, { SettingsModal } from './components/ConnectionSettings'
 import ConsoleSidebar from './components/ConsoleSidebar'
 import { useWebSocket } from './hooks/useWebSocket'
 
@@ -16,16 +16,21 @@ export interface AgentAlert {
 export default function App() {
   const [connected, setConnected] = useState(false)
   const [showSettings, setShowSettings] = useState(true)
+  // 顶栏独立入口：当前打开的设置弹窗（集群 / 大模型），null 表示未打开
+  const [settingsModal, setSettingsModal] = useState<'cluster' | 'llm' | null>(null)
   // 保存连接配置，供顶部状态栏展示集群/节点信息
   const [config, setConfig] = useState<Record<string, string>>({})
 
   const {
     sendCommand,
+    sendPaste,
     sendChatMessage,
+    sendRunTemplate,
     terminalMessages,
     chatMessages,
     isTyping,
     jobs,
+    templateState,
     connectAll,
   } = useWebSocket()
 
@@ -61,7 +66,7 @@ export default function App() {
     }
   }, [])
 
-  const handleConnect = async (cfg: Record<string, string>) => {
+  const handleClusterConnect = async (cfg: Record<string, string>): Promise<boolean> => {
     try {
       const resp = await fetch('/api/connect', {
         method: 'POST',
@@ -69,18 +74,46 @@ export default function App() {
         body: JSON.stringify(cfg),
       })
       if (resp.ok) {
-        setConfig(cfg)
+        setConfig((c) => ({ ...c, ...cfg }))
         setConnected(true)
-        setShowSettings(false)
-        connectAll()
+        return true
       }
+      return false
     } catch {
-      alert('连接失败，请确认后端已启动 (uvicorn backend.main:app)')
+      return false
     }
   }
 
+  const handleLlmSave = async (cfg: Record<string, string>): Promise<boolean> => {
+    try {
+      const resp = await fetch('/api/llm/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cfg),
+      })
+      if (resp.ok) {
+        setConfig((c) => ({ ...c, ...cfg }))
+        return true
+      }
+      return false
+    } catch {
+      return false
+    }
+  }
+
+  const handleWizardDone = () => {
+    setShowSettings(false)
+    connectAll()
+  }
+
   if (showSettings) {
-    return <ConnectionSettings onConnect={handleConnect} />
+    return (
+      <ConnectionSettings
+        onClusterConnect={handleClusterConnect}
+        onLlmSave={handleLlmSave}
+        onDone={handleWizardDone}
+      />
+    )
   }
 
   const cluster = config.webshell_cluster || config.cluster || 'training'
@@ -125,10 +158,16 @@ export default function App() {
           </div>
           <div className="w-px h-4 bg-[var(--border)]" />
           <button
-            onClick={() => setShowSettings(true)}
+            onClick={() => setSettingsModal('cluster')}
             className="text-xs px-2.5 h-7 rounded-[var(--radius-sm)] bg-[var(--bg-elevated)] border border-[var(--border)] hover:border-[var(--text-dim)] text-[var(--text-secondary)] transition-colors"
           >
-            ⚙ 设置
+            ⚙ 集群
+          </button>
+          <button
+            onClick={() => setSettingsModal('llm')}
+            className="text-xs px-2.5 h-7 rounded-[var(--radius-sm)] bg-[var(--bg-elevated)] border border-[var(--border)] hover:border-[var(--text-dim)] text-[var(--text-secondary)] transition-colors"
+          >
+            ✦ 大模型
           </button>
         </div>
       </header>
@@ -137,11 +176,15 @@ export default function App() {
       <div ref={containerRef} className="flex flex-1 min-h-0">
         {/* 左：控制台（侧边栏 + 终端） */}
         <div style={{ width: `${leftWidth}%` }} className="flex min-w-0">
-          <ConsoleSidebar onRunCommand={(cmd) => sendCommand(cmd, true)} />
+          <ConsoleSidebar
+            onRunCommand={(cmd) => sendCommand(cmd, true)}
+            onRunTemplate={(templateId, request) => sendRunTemplate(templateId, request)}
+          />
           <div className="flex-1 flex flex-col min-w-0">
             <Terminal
               messages={terminalMessages}
               onCommand={sendCommand}
+              onPaste={sendPaste}
               connected={connected}
             />
           </div>
@@ -162,11 +205,23 @@ export default function App() {
             messages={chatMessages}
             onSend={sendChatMessage}
             onRunCommand={(cmd) => sendCommand(cmd, true)}
+            onRunTemplate={(templateId, request) => sendRunTemplate(templateId, request)}
             isTyping={isTyping}
             jobs={jobs}
+            templateState={templateState}
           />
         </div>
       </div>
+
+      {/* 顶栏独立设置弹窗：集群连接 / 大模型 API 各自独立 */}
+      {settingsModal && (
+        <SettingsModal
+          section={settingsModal}
+          onClose={() => setSettingsModal(null)}
+          onClusterConnect={handleClusterConnect}
+          onLlmSave={handleLlmSave}
+        />
+      )}
     </div>
   )
 }

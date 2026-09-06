@@ -3,13 +3,8 @@
 使用交接文档中记录的真实平台报错作为测试用例。
 """
 
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
-
-from hpc_copilot.diagnostics import DiagnosticsEngine
-from hpc_copilot.models import ErrorType
+from backend.core.diagnostics import DiagnosticsEngine
+from backend.core.models import ErrorType
 
 engine = DiagnosticsEngine()
 
@@ -60,6 +55,20 @@ class TestCommonErrors:
         # 这个会匹配到 program_exit_nonzero（Traceback）或 module_not_found
         # 取决于规则顺序，但不应是 UNKNOWN
         assert result.error_type != ErrorType.UNKNOWN
+
+    def test_failed_job_prefers_specific_log_over_nonzero_exit(self):
+        """FAILED 只是表象，具体 Module 日志必须优先于退出码兜底。"""
+        log = "ERROR: Unable to locate a modulefile for 'module_not_exist_9999'"
+        result = engine.diagnose_job(
+            state="FAILED",
+            state_reason="NonZeroExitCode",
+            log_text=log,
+        )
+
+        assert result.error_type == ErrorType.MODULE_NOT_FOUND
+        assert result.matched_rule == "module_not_found"
+        assert "作业状态: FAILED" in result.evidence
+        assert any("Unable to locate a modulefile" in item for item in result.evidence)
 
     def test_out_of_memory(self):
         log = "slurmstepd: error: Detected 1 oom_kill event in StepId=12347.batch"

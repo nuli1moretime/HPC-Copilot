@@ -31,6 +31,7 @@ desktop.ini
 # Environment / secrets
 .env
 .env.*
+!.env.example
 *.pem
 *.key
 backend/data/connection_config.json

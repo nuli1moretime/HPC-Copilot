@@ -101,14 +101,29 @@ class DiagnosticsEngine:
             evidence.append(f"退出码: {exit_code}")
 
         # 1. 状态直接判定
-        if state == "TIMEOUT":
+        normalized_state = state.upper()
+        if normalized_state == "TIMEOUT":
             return self._build_result("timeout", evidence)
-        if state == "OUT_OF_MEMORY":
+        if normalized_state in {"OUT_OF_MEMORY", "OOM"}:
             return self._build_result("out_of_memory", evidence)
-        if state == "CANCELLED" and "TIME LIMIT" in state_reason.upper():
+        if normalized_state == "NODE_FAIL":
+            return self._build_result("node_fail", evidence)
+        if normalized_state == "PREEMPTED":
+            return self._build_result("preempted", evidence)
+        if normalized_state == "CANCELLED" and "TIME LIMIT" in state_reason.upper():
             return self._build_result("timeout", evidence)
 
-        # 2. 退出码判定
+        # 2. 优先使用作业日志判断具体原因。
+        # FAILED / NonZeroExitCode 只能说明“程序返回了非零退出码”，无法区分
+        # Module 不存在、Python 异常、CUDA 错误等具体问题。只要拿到了日志，
+        # 就应先跑规则匹配；没有具体命中时才使用退出码兜底。
+        if log_text.strip():
+            log_result = self.diagnose(log_text)
+            if log_result.error_type != ErrorType.UNKNOWN:
+                log_result.evidence = evidence + log_result.evidence
+                return log_result
+
+        # 3. 退出码判定（日志无法给出更具体结论时的兜底）
         if state_reason == "NonZeroExitCode" or (exit_code is not None and exit_code != 0):
             if exit_code == 2:
                 result = self._build_result("entrypoint_not_found", evidence)
@@ -121,10 +136,6 @@ class DiagnosticsEngine:
             result = self._build_result("program_exit_nonzero", evidence)
             result.evidence.append(f"非零退出码 {exit_code} 表示程序异常终止")
             return result
-
-        # 3. 回退到正则匹配
-        if log_text.strip():
-            return self.diagnose(log_text)
 
         return DiagnosisResult(
             error_type=ErrorType.UNKNOWN,

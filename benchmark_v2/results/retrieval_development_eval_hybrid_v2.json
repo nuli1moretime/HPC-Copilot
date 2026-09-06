@@ -1,0 +1,1857 @@
+{
+  "created_at_utc": "2026-09-06T04:45:23.045093+00:00",
+  "dataset": "benchmark/rag_eval_cases.yaml",
+  "embedding_model": "qwen3-embedding",
+  "production_top_k": 3,
+  "search_top_k": 10,
+  "hybrid_enabled": true,
+  "lexical_weight": 0.35,
+  "reranker_enabled": false,
+  "embedding_failures": 0,
+  "elapsed_seconds": 11.74,
+  "metrics": {
+    "strict_section_at_1": {
+      "hits": 54,
+      "total": 79,
+      "hit_rate": 0.6835,
+      "mrr": 0.6835
+    },
+    "strict_section_at_3": {
+      "hits": 71,
+      "total": 79,
+      "hit_rate": 0.8987,
+      "mrr": 0.7743
+    },
+    "file_at_1": {
+      "hits": 64,
+      "total": 79,
+      "hit_rate": 0.8101,
+      "mrr": 0.8101
+    },
+    "file_at_3": {
+      "hits": 78,
+      "total": 79,
+      "hit_rate": 0.9873,
+      "mrr": 0.8882
+    }
+  },
+  "details": [
+    {
+      "id": "q_partition_01",
+      "question": "107平台有哪些分区？比赛用哪个？",
+      "strict_section_rank": 2,
+      "file_rank": 2,
+      "production_results": [
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "必须遵守的平台约束 > 1. 分区和QOS必须匹配",
+          "score": 0.7004058260387844
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "分区与QoS",
+          "score": 0.657066150771247
+        },
+        {
+          "file": "slurm_command_reference.md",
+          "heading": "107平台分区速查",
+          "score": 0.590282040172153
+        }
+      ]
+    },
+    {
+      "id": "q_partition_02",
+      "question": "P107-RTX5090和P107-A100有什么区别？",
+      "strict_section_rank": 0,
+      "file_rank": 2,
+      "production_results": [
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "必须遵守的平台约束 > 1. 分区和QOS必须匹配",
+          "score": 0.7353483390808105
+        },
+        {
+          "file": "slurm_command_reference.md",
+          "heading": "107平台QOS速查",
+          "score": 0.6016117286682129
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "GPU相关注意事项 > 指定GPU类型",
+          "score": 0.5757853388786316
+        }
+      ]
+    },
+    {
+      "id": "q_partition_03",
+      "question": "Students分区包含哪些节点？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "平台状态快照（2026-05-21）",
+          "score": 0.7049764609336853
+        },
+        {
+          "file": "slurm_command_reference.md",
+          "heading": "107平台分区速查",
+          "score": 0.6946431183815003
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "分区与QoS",
+          "score": 0.6177373313903809
+        }
+      ]
+    },
+    {
+      "id": "q_qos_01",
+      "question": "qos_p107-rtx5090最多能用几个GPU？",
+      "strict_section_rank": 3,
+      "file_rank": 3,
+      "production_results": [
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "必须遵守的平台约束 > 1. 分区和QOS必须匹配",
+          "score": 0.761802563233809
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "常见错误与预防 > 6. 资源申请超过QOS上限",
+          "score": 0.7260235730084506
+        },
+        {
+          "file": "slurm_command_reference.md",
+          "heading": "107平台QOS速查",
+          "score": 0.7171396199139681
+        }
+      ]
+    },
+    {
+      "id": "q_qos_02",
+      "question": "怎么查看自己可用的QoS？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "slurm_command_reference.md",
+          "heading": "sacctmgr — 查看QOS和账户",
+          "score": 0.7478477875391643
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 查看GPU使用情况",
+          "score": 0.649144135316213
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "分区与QoS",
+          "score": 0.6419724810918173
+        }
+      ]
+    },
+    {
+      "id": "q_qos_limit_01",
+      "question": "为什么报QOSMaxWallDurationPerJobLimit错误？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "error_format_handbook.md",
+          "heading": "QOS限制类错误（非INVALID_QOS）",
+          "score": 0.8765222390492757
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > QOSMaxWallDurationPerJobLimit错误",
+          "score": 0.851894694964091
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > QOSMaxCpuPerUserLimit错误",
+          "score": 0.8093925507863362
+        }
+      ]
+    },
+    {
+      "id": "q_qos_limit_02",
+      "question": "QOSMaxCpuPerUserLimit是什么意思？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > QOSMaxCpuPerUserLimit错误",
+          "score": 0.7950784897804261
+        },
+        {
+          "file": "error_format_handbook.md",
+          "heading": "QOS限制类错误（非INVALID_QOS）",
+          "score": 0.6748887443542481
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "必须遵守的平台约束 > 2. QOS资源上限不可超过",
+          "score": 0.6591670060157776
+        }
+      ]
+    },
+    {
+      "id": "q_submit_01",
+      "question": "怎么写一个GPU训练的sbatch脚本？",
+      "strict_section_rank": 0,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "脚本基本结构",
+          "score": 0.7437432853380839
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "作业提交（sbatch）",
+          "score": 0.7387301174799601
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "作业提交",
+          "score": 0.730353627204895
+        }
+      ]
+    },
+    {
+      "id": "q_submit_02",
+      "question": "sbatch脚本的基本结构是什么？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "脚本基本结构",
+          "score": 0.7661695300831515
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "常见错误与预防 > 8. 脚本无执行权限",
+          "score": 0.706751003966612
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "作业提交（sbatch）",
+          "score": 0.6809677631714764
+        }
+      ]
+    },
+    {
+      "id": "q_submit_03",
+      "question": "SBATCH参数--gres=gpu:1是什么意思？",
+      "strict_section_rank": 2,
+      "file_rank": 2,
+      "production_results": [
+        {
+          "file": "107_platform_guide.md",
+          "heading": "作业提交（sbatch）",
+          "score": 0.7157584943771362
+        },
+        {
+          "file": "slurm_command_reference.md",
+          "heading": "SBATCH 参数详解",
+          "score": 0.6834443144798279
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 查看GPU使用情况",
+          "score": 0.6818021869659424
+        }
+      ]
+    },
+    {
+      "id": "q_submit_04",
+      "question": "怎么提交数组作业？",
+      "strict_section_rank": 0,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "输出文件路径 > 不要写到/tmp",
+          "score": 0.5468288660049438
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "关键链接",
+          "score": 0.53759765625
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > SSH无法连接",
+          "score": 0.531393000646071
+        }
+      ]
+    },
+    {
+      "id": "q_submit_05",
+      "question": "怎么提交多节点MPI并行作业？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "多节点MPI并行作业",
+          "score": 0.8946100145975748
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "关键链接",
+          "score": 0.6109368801116943
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "作业提交（sbatch）",
+          "score": 0.6091994880040487
+        }
+      ]
+    },
+    {
+      "id": "q_submit_06",
+      "question": "sbatch命令行参数会覆盖脚本里的#SBATCH吗？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "必须遵守的平台约束 > 3. 命令行参数覆盖脚本参数",
+          "score": 0.9927256094325672
+        },
+        {
+          "file": "slurm_command_reference.md",
+          "heading": "sbatch — 提交批处理作业",
+          "score": 0.7577226859872992
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "作业提交（sbatch）",
+          "score": 0.7490107610008934
+        }
+      ]
+    },
+    {
+      "id": "q_submit_07",
+      "question": "提交前需要检查什么？",
+      "strict_section_rank": 0,
+      "file_rank": 2,
+      "production_results": [
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > SSH无法连接",
+          "score": 0.606341369152069
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > 作业一直排队",
+          "score": 0.5744913816452026
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "常见错误与预防 > 2. 分区名/QOS名拼写错误",
+          "score": 0.5249727964401245
+        }
+      ]
+    },
+    {
+      "id": "q_err_partition",
+      "question": "sbatch报invalid partition怎么办？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "error_format_handbook.md",
+          "heading": "INVALID_PARTITION — 无效分区",
+          "score": 0.8199409012794494
+        },
+        {
+          "file": "error_format_handbook.md",
+          "heading": "INVALID_QOS — 无效QOS",
+          "score": 0.7790112857818603
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "常见错误与预防 > 2. 分区名/QOS名拼写错误",
+          "score": 0.7309752702713013
+        }
+      ]
+    },
+    {
+      "id": "q_err_qos",
+      "question": "Invalid qos specification是什么意思？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "error_format_handbook.md",
+          "heading": "INVALID_QOS — 无效QOS",
+          "score": 0.7391158141030205
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "常见错误与预防 > 2. 分区名/QOS名拼写错误",
+          "score": 0.678962426715427
+        },
+        {
+          "file": "error_format_handbook.md",
+          "heading": "QOS限制类错误（非INVALID_QOS）",
+          "score": 0.6418765359454685
+        }
+      ]
+    },
+    {
+      "id": "q_err_workdir",
+      "question": "chdir failed: No such file or directory怎么解决？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "error_format_handbook.md",
+          "heading": "WORKDIR_NOT_FOUND — 工作目录失效",
+          "score": 0.657764498537237
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 权限错误",
+          "score": 0.565916895866394
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > 作业一直排队",
+          "score": 0.5492901893095536
+        }
+      ]
+    },
+    {
+      "id": "q_err_entrypoint",
+      "question": "python: can't open file是什么问题？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "error_format_handbook.md",
+          "heading": "ENTRYPOINT_NOT_FOUND — 入口文件不存在",
+          "score": 0.5957363886833191
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "常见错误与预防 > 1. 路径拼写错误",
+          "score": 0.5685289363861084
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > module加载失败",
+          "score": 0.5570824618339538
+        }
+      ]
+    },
+    {
+      "id": "q_err_module",
+      "question": "Unable to locate a modulefile怎么办？",
+      "strict_section_rank": 2,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > module加载失败",
+          "score": 0.8932878446578979
+        },
+        {
+          "file": "error_format_handbook.md",
+          "heading": "MODULE_NOT_FOUND — 模块不存在",
+          "score": 0.8251534175872802
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > conda命令找不到",
+          "score": 0.6586977243423462
+        }
+      ]
+    },
+    {
+      "id": "q_err_timeout",
+      "question": "CANCELLED DUE TO TIME LIMIT是什么意思？",
+      "strict_section_rank": 3,
+      "file_rank": 3,
+      "production_results": [
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 作业一直PENDING",
+          "score": 0.6137278079986572
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > 作业一直排队",
+          "score": 0.6094632148742676
+        },
+        {
+          "file": "error_format_handbook.md",
+          "heading": "TIMEOUT — 作业超时",
+          "score": 0.5875882365486839
+        }
+      ]
+    },
+    {
+      "id": "q_err_oom",
+      "question": "slurmstepd报oom-kill是什么意思？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "error_format_handbook.md",
+          "heading": "OUT_OF_MEMORY — 内存超限",
+          "score": 0.7457327198982239
+        },
+        {
+          "file": "error_format_handbook.md",
+          "heading": "错误格式匹配注意事项",
+          "score": 0.5898569822311401
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > 训练OOM（CUDA out of memory）",
+          "score": 0.582341730594635
+        }
+      ]
+    },
+    {
+      "id": "q_err_exit",
+      "question": "Traceback most recent call last怎么排查？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "error_format_handbook.md",
+          "heading": "PROGRAM_EXIT_NONZERO — 程序非零退出",
+          "score": 0.5494939645131429
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > module加载失败",
+          "score": 0.5051994086636438
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "常见错误与预防 > 1. 路径拼写错误",
+          "score": 0.5049952864646912
+        }
+      ]
+    },
+    {
+      "id": "q_err_disk",
+      "question": "Disk quota exceeded怎么办？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "error_format_handbook.md",
+          "heading": "DISK_QUOTA — 磁盘配额不足",
+          "score": 0.7045170431137084
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > 作业一直排队",
+          "score": 0.6533488035202026
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > QOSMaxCpuPerUserLimit错误",
+          "score": 0.6285970211029053
+        }
+      ]
+    },
+    {
+      "id": "q_err_permission",
+      "question": "Permission denied写到/root下面就报错了",
+      "strict_section_rank": 2,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 权限错误",
+          "score": 0.7955561617704539
+        },
+        {
+          "file": "error_format_handbook.md",
+          "heading": "PERMISSION_DENIED — 权限问题",
+          "score": 0.6978534966248733
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "常见错误与预防 > 10. 写文件到无权限的目录",
+          "score": 0.6514829397201538
+        }
+      ]
+    },
+    {
+      "id": "q_err_gpu_oom",
+      "question": "CUDA out of memory怎么解决？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > 训练OOM（CUDA out of memory）",
+          "score": 0.8415567231178284
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > nvidia-smi找不到GPU",
+          "score": 0.6980816102027894
+        },
+        {
+          "file": "error_format_handbook.md",
+          "heading": "GPU_OOM — GPU显存不足",
+          "score": 0.672260274887085
+        }
+      ]
+    },
+    {
+      "id": "q_err_node_fail",
+      "question": "Node failure是什么意思？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "error_format_handbook.md",
+          "heading": "NODE_FAIL — 节点故障",
+          "score": 0.6033971261978149
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > 作业一直排队",
+          "score": 0.5817409753799438
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > nvidia-smi报告Driver/library version mismatch",
+          "score": 0.5520983934402466
+        }
+      ]
+    },
+    {
+      "id": "q_err_preempted",
+      "question": "作业被PREEMPTED了怎么办？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "error_format_handbook.md",
+          "heading": "PREEMPTED — 作业被抢占",
+          "score": 0.7549101352691651
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > 作业一直排队",
+          "score": 0.7030431032180786
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 作业一直PENDING",
+          "score": 0.6627634763717651
+        }
+      ]
+    },
+    {
+      "id": "q_err_conda",
+      "question": "conda: command not found怎么解决？",
+      "strict_section_rank": 2,
+      "file_rank": 2,
+      "production_results": [
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > conda命令找不到",
+          "score": 0.8371938514709473
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "Conda环境激活（最常见的坑） > 问题：批处理脚本中conda不可用",
+          "score": 0.7904411602020264
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "Conda环境激活（最常见的坑） > 为什么需要set +u / set -u？",
+          "score": 0.7549117946624756
+        }
+      ]
+    },
+    {
+      "id": "q_err_cuda_device",
+      "question": "Torch not compiled with CUDA enabled怎么办？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "error_format_handbook.md",
+          "heading": "CUDA_DEVICE — GPU设备/驱动错误",
+          "score": 0.7522412395477295
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "GPU相关注意事项 > 安装GPU版PyTorch",
+          "score": 0.7095771408081055
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > conda安装了CPU版PyTorch",
+          "score": 0.7016444206237793
+        }
+      ]
+    },
+    {
+      "id": "q_err_time_format",
+      "question": "Invalid time limit specification怎么改？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "error_format_handbook.md",
+          "heading": "INVALID_TIME — 时间格式错误",
+          "score": 0.709749526977539
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > QOSMaxWallDurationPerJobLimit错误",
+          "score": 0.6698722839355469
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "时间格式",
+          "score": 0.6541211605072021
+        }
+      ]
+    },
+    {
+      "id": "q_err_dependency",
+      "question": "Dependency failed是什么意思？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "error_format_handbook.md",
+          "heading": "DEPENDENCY — 作业依赖问题",
+          "score": 0.6396122074127197
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > 作业一直排队",
+          "score": 0.6368258595466614
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 作业一直PENDING",
+          "score": 0.5931457853317261
+        }
+      ]
+    },
+    {
+      "id": "q_err_account",
+      "question": "Invalid account specification怎么解决？",
+      "strict_section_rank": 3,
+      "file_rank": 3,
+      "production_results": [
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > SSH无法连接",
+          "score": 0.626941978931427
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > 作业一直排队",
+          "score": 0.6140836024284363
+        },
+        {
+          "file": "error_format_handbook.md",
+          "heading": "ACCOUNT_ISSUE — 账号/关联问题",
+          "score": 0.5938088726997376
+        }
+      ]
+    },
+    {
+      "id": "q_conda_01",
+      "question": "怎么在作业脚本里激活conda环境？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "Conda环境激活（最常见的坑） > 问题：批处理脚本中conda不可用",
+          "score": 0.8539236855506896
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > conda命令找不到",
+          "score": 0.7768836767533246
+        },
+        {
+          "file": "error_format_handbook.md",
+          "heading": "CONDA_ENV — Conda环境问题",
+          "score": 0.7658305445839377
+        }
+      ]
+    },
+    {
+      "id": "q_conda_02",
+      "question": "为什么需要set +u和set -u包裹conda激活？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "Conda环境激活（最常见的坑） > 为什么需要set +u / set -u？",
+          "score": 1.0776142867406209
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "set -euo pipefail 的使用 > conda激活时的例外",
+          "score": 0.9865031433105469
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "Conda环境激活（最常见的坑） > 问题：批处理脚本中conda不可用",
+          "score": 0.7309535916646321
+        }
+      ]
+    },
+    {
+      "id": "q_conda_03",
+      "question": "怎么安装GPU版的PyTorch？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "GPU相关注意事项 > 安装GPU版PyTorch",
+          "score": 0.877708683013916
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > conda安装了CPU版PyTorch",
+          "score": 0.8495483160018921
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > nvidia-smi找不到GPU",
+          "score": 0.6863003253936768
+        }
+      ]
+    },
+    {
+      "id": "q_module_01",
+      "question": "107平台有哪些可用的module？",
+      "strict_section_rank": 2,
+      "file_rank": 2,
+      "production_results": [
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "Conda环境激活（最常见的坑） > 如果conda本身未加载",
+          "score": 0.6119791412353516
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "软件环境",
+          "score": 0.5766436004638672
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "平台概览",
+          "score": 0.5223401856422424
+        }
+      ]
+    },
+    {
+      "id": "q_module_02",
+      "question": "怎么查看有哪些module可以加载？",
+      "strict_section_rank": 3,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > module加载失败",
+          "score": 0.6101156322161356
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 如何访问/public下的软件",
+          "score": 0.5861164054870606
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "软件环境",
+          "score": 0.5702846369743347
+        }
+      ]
+    },
+    {
+      "id": "q_gpu_01",
+      "question": "怎么确认我的作业分配到GPU了？",
+      "strict_section_rank": 3,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 查看GPU使用情况",
+          "score": 0.8443996460297528
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > nvidia-smi找不到GPU",
+          "score": 0.7537867576935712
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "GPU相关注意事项 > 登录节点无GPU",
+          "score": 0.6826917679169598
+        }
+      ]
+    },
+    {
+      "id": "q_gpu_02",
+      "question": "nvidia-smi在登录节点能用吗？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "GPU相关注意事项 > 登录节点无GPU",
+          "score": 0.9687009668350219
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 查看GPU使用情况",
+          "score": 0.8259082794189453
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > nvidia-smi找不到GPU",
+          "score": 0.8038329029083252
+        }
+      ]
+    },
+    {
+      "id": "q_gpu_03",
+      "question": "怎么指定用RTX 5090还是A100？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "GPU相关注意事项 > 指定GPU类型",
+          "score": 0.7728159346580505
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "必须遵守的平台约束 > 1. 分区和QOS必须匹配",
+          "score": 0.7242144527435302
+        },
+        {
+          "file": "slurm_command_reference.md",
+          "heading": "107平台QOS速查",
+          "score": 0.6213325262069702
+        }
+      ]
+    },
+    {
+      "id": "q_gpu_04",
+      "question": "为什么我装的PyTorch没有CUDA支持？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "GPU相关注意事项 > 安装GPU版PyTorch",
+          "score": 0.7696718041102092
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > conda安装了CPU版PyTorch",
+          "score": 0.7452157417933146
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > nvidia-smi找不到GPU",
+          "score": 0.6747461557388306
+        }
+      ]
+    },
+    {
+      "id": "q_script_sete",
+      "question": "set -euo pipefail是什么意思？要不要加？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "set -euo pipefail 的使用 > 推荐在脚本开头加入",
+          "score": 0.8519269347190856
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "set -euo pipefail 的使用 > conda激活时的例外",
+          "score": 0.6812300658226014
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "set -euo pipefail 的使用 > 重要：无set -e时错误后继续执行",
+          "score": 0.6699451780319214
+        }
+      ]
+    },
+    {
+      "id": "q_script_time",
+      "question": "sbatch的时间格式怎么写？--time=2days对吗？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "error_format_handbook.md",
+          "heading": "INVALID_TIME — 时间格式错误",
+          "score": 0.8971569204330444
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "时间格式",
+          "score": 0.8477603816986083
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "常见错误与预防 > 5. 时间申请过短或格式错误",
+          "score": 0.727995285987854
+        }
+      ]
+    },
+    {
+      "id": "q_script_output",
+      "question": "日志文件应该写到哪个目录？/tmp可以吗？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "输出文件路径 > 不要写到/tmp",
+          "score": 0.7408653426170348
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > 没有日志文件",
+          "score": 0.6058046452204386
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "存储与数据",
+          "score": 0.5967532777786255
+        }
+      ]
+    },
+    {
+      "id": "q_script_log_missing",
+      "question": "为什么我的作业没有生成日志文件？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > 没有日志文件",
+          "score": 0.7109202432632447
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > nvidia-smi找不到GPU",
+          "score": 0.6003748178482056
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 作业运行失败",
+          "score": 0.5960020184516907
+        }
+      ]
+    },
+    {
+      "id": "q_script_data",
+      "question": "项目目录结构怎么组织比较好？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "数据与文件管理 > 项目目录结构推荐",
+          "score": 0.6212932231209495
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "快速入门流程",
+          "score": 0.5804754905267195
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "输出文件路径 > 不要写到/tmp",
+          "score": 0.5142328143119812
+        }
+      ]
+    },
+    {
+      "id": "q_script_mistakes",
+      "question": "写sbatch脚本有哪些常见的坑？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "常见错误与预防 > 8. 脚本无执行权限",
+          "score": 0.7663903951644897
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "必须遵守的平台约束 > 3. 命令行参数覆盖脚本参数",
+          "score": 0.6819921779632568
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "常见错误与预防 > 7. 在登录节点跑训练",
+          "score": 0.6702990889549255
+        }
+      ]
+    },
+    {
+      "id": "q_basic_01",
+      "question": "107平台的登录节点地址是什么？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "107_platform_guide.md",
+          "heading": "平台概览",
+          "score": 0.6351113500595092
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 查看GPU使用情况",
+          "score": 0.6178055953979492
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "平台状态快照（2026-05-21）",
+          "score": 0.6166697692871094
+        }
+      ]
+    },
+    {
+      "id": "q_basic_02",
+      "question": "107平台有多少个计算节点？什么配置？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "107_platform_guide.md",
+          "heading": "平台概览",
+          "score": 0.7538552570343018
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "分区与QoS",
+          "score": 0.6258035945892334
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "平台定位与架构",
+          "score": 0.6241544723510742
+        }
+      ]
+    },
+    {
+      "id": "q_basic_03",
+      "question": "数据应该放在/public还是/tmp？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "输出文件路径 > 不要写到/tmp",
+          "score": 0.7671718660990398
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "存储与数据",
+          "score": 0.706850692431132
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 磁盘配额不足",
+          "score": 0.6016166591644287
+        }
+      ]
+    },
+    {
+      "id": "q_basic_04",
+      "question": "用户有sudo权限吗？",
+      "strict_section_rank": 0,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 权限错误",
+          "score": 0.8356232213973999
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > SSH无法连接",
+          "score": 0.6707508111000061
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > 作业一直排队",
+          "score": 0.6347262406349182
+        }
+      ]
+    },
+    {
+      "id": "q_basic_05",
+      "question": "怎么访问SCOW Web界面？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "107_platform_guide.md",
+          "heading": "SCOW Web平台功能",
+          "score": 0.828907585144043
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "访问方式与入口",
+          "score": 0.7632542419433593
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "访问方式",
+          "score": 0.7544495630264282
+        }
+      ]
+    },
+    {
+      "id": "q_basic_06",
+      "question": "REST API怎么认证？",
+      "strict_section_rank": 3,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "107_platform_guide.md",
+          "heading": "访问方式",
+          "score": 0.6008050346374512
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > SSH无法连接",
+          "score": 0.589692370891571
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "REST API使用",
+          "score": 0.5329163555304209
+        }
+      ]
+    },
+    {
+      "id": "q_cmd_sinfo",
+      "question": "怎么查看集群的节点状态？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "107_platform_guide.md",
+          "heading": "查看集群状态",
+          "score": 0.7437214771906535
+        },
+        {
+          "file": "slurm_command_reference.md",
+          "heading": "sinfo — 查看集群与分区状态",
+          "score": 0.7184467832247416
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 查看GPU使用情况",
+          "score": 0.6817064128981696
+        }
+      ]
+    },
+    {
+      "id": "q_cmd_squeue",
+      "question": "怎么查看我的作业在排队？",
+      "strict_section_rank": 0,
+      "file_rank": 3,
+      "production_results": [
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 作业一直PENDING",
+          "score": 0.6687270069122314
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 查看GPU使用情况",
+          "score": 0.6574983358383178
+        },
+        {
+          "file": "slurm_command_reference.md",
+          "heading": "排查流程决策树",
+          "score": 0.6207926201820373
+        }
+      ]
+    },
+    {
+      "id": "q_cmd_squeue_reason",
+      "question": "squeue的Reason列各种含义是什么？",
+      "strict_section_rank": 2,
+      "file_rank": 2,
+      "production_results": [
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 作业一直PENDING",
+          "score": 0.8701774024963379
+        },
+        {
+          "file": "slurm_command_reference.md",
+          "heading": "squeue — 查看作业队列",
+          "score": 0.6731464576721191
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "作业状态与查询",
+          "score": 0.6716001176834107
+        }
+      ]
+    },
+    {
+      "id": "q_cmd_scontrol",
+      "question": "scontrol show job看哪些字段？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "slurm_command_reference.md",
+          "heading": "scontrol — 查看详情",
+          "score": 0.7551240243911743
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 作业运行失败",
+          "score": 0.6928065462112427
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "Slurm环境变量",
+          "score": 0.6412477216720581
+        }
+      ]
+    },
+    {
+      "id": "q_cmd_scancel",
+      "question": "怎么取消我的所有排队作业？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "slurm_command_reference.md",
+          "heading": "scancel — 取消作业",
+          "score": 0.7504854435390896
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "作业管理命令",
+          "score": 0.6555771732330322
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 作业一直PENDING",
+          "score": 0.6152771711349487
+        }
+      ]
+    },
+    {
+      "id": "q_cmd_sacct",
+      "question": "sacct在107平台能用吗？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "107_platform_guide.md",
+          "heading": "平台限制与注意事项",
+          "score": 0.6304796314239502
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "关键链接",
+          "score": 0.6180945634841919
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 查看GPU使用情况",
+          "score": 0.588647723197937
+        }
+      ]
+    },
+    {
+      "id": "q_cmd_env",
+      "question": "SLURM_JOB_ID这些环境变量在哪有效？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "slurm_command_reference.md",
+          "heading": "Slurm 环境变量（仅作业脚本内有效）",
+          "score": 0.8411615300178528
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "Slurm环境变量",
+          "score": 0.8282030842039321
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 作业运行失败",
+          "score": 0.6310477256774902
+        }
+      ]
+    },
+    {
+      "id": "q_debug_01",
+      "question": "作业失败了，我应该按什么顺序排查？",
+      "strict_section_rank": 2,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > 作业一直排队",
+          "score": 0.7188531160354614
+        },
+        {
+          "file": "slurm_command_reference.md",
+          "heading": "排查流程决策树",
+          "score": 0.7118149319562045
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > 向平台求助时需提供",
+          "score": 0.6484155700423501
+        }
+      ]
+    },
+    {
+      "id": "q_debug_02",
+      "question": "作业一直PENDING是什么原因？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 作业一直PENDING",
+          "score": 0.8531697353449734
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > 作业一直排队",
+          "score": 0.7826208220828663
+        },
+        {
+          "file": "slurm_command_reference.md",
+          "heading": "排查流程决策树",
+          "score": 0.6273500919342041
+        }
+      ]
+    },
+    {
+      "id": "q_debug_03",
+      "question": "怎么查看作业为什么排队？",
+      "strict_section_rank": 0,
+      "file_rank": 2,
+      "production_results": [
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 作业一直PENDING",
+          "score": 0.7501335430145264
+        },
+        {
+          "file": "slurm_command_reference.md",
+          "heading": "排查流程决策树",
+          "score": 0.7008648133277893
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 查看GPU使用情况",
+          "score": 0.6560708045959472
+        }
+      ]
+    },
+    {
+      "id": "q_debug_04",
+      "question": "作业状态PD/R/F/CA分别是什么意思？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "作业状态与排查",
+          "score": 0.711626968383789
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "作业状态与查询",
+          "score": 0.6032110714912414
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 作业一直PENDING",
+          "score": 0.5732284784317017
+        }
+      ]
+    },
+    {
+      "id": "q_faq_01",
+      "question": "关闭浏览器作业会停吗？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > 关闭浏览器任务会停吗？",
+          "score": 0.6730853700637818
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "输出文件路径 > 不要写到/tmp",
+          "score": 0.5210939645767212
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > 更多CPU worker更快？",
+          "score": 0.518261194229126
+        }
+      ]
+    },
+    {
+      "id": "q_faq_02",
+      "question": "更多CPU worker会更快吗？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > 更多CPU worker更快？",
+          "score": 0.9574524688720703
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > QOSMaxCpuPerUserLimit错误",
+          "score": 0.6146703338623047
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > 训练OOM（CUDA out of memory）",
+          "score": 0.5873016667366028
+        }
+      ]
+    },
+    {
+      "id": "q_faq_03",
+      "question": "GitHub下载不了怎么办？",
+      "strict_section_rank": 3,
+      "file_rank": 3,
+      "production_results": [
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "数据与文件管理 > 大文件不要直接上传",
+          "score": 0.6345231624083085
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > SSH无法连接",
+          "score": 0.5624412298202515
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > 作业一直排队",
+          "score": 0.5467824339866638
+        }
+      ]
+    },
+    {
+      "id": "q_faq_04",
+      "question": "怎么向平台求助？需要提供什么信息？",
+      "strict_section_rank": 3,
+      "file_rank": 2,
+      "production_results": [
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > SSH无法连接",
+          "score": 0.5741735696792603
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "关键链接",
+          "score": 0.5414787530899048
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > 作业一直排队",
+          "score": 0.5379858016967773
+        }
+      ]
+    },
+    {
+      "id": "q_interactive_01",
+      "question": "怎么交互式登录到计算节点调试？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "交互式计算",
+          "score": 0.7012641986211141
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 查看GPU使用情况",
+          "score": 0.6873508048057556
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > SSH无法连接",
+          "score": 0.6708570718765259
+        }
+      ]
+    },
+    {
+      "id": "q_interactive_02",
+      "question": "srun和sbatch有什么区别？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "slurm_command_reference.md",
+          "heading": "srun — 交互式运行",
+          "score": 0.619140157699585
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "必须遵守的平台约束 > 3. 命令行参数覆盖脚本参数",
+          "score": 0.6154332733154297
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "常见错误与预防 > 8. 脚本无执行权限",
+          "score": 0.6138144707679749
+        }
+      ]
+    },
+    {
+      "id": "q_monitor_01",
+      "question": "怎么查看集群的Grafana监控面板？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "107_platform_guide.md",
+          "heading": "监控系统",
+          "score": 0.6897274589538575
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 查看GPU使用情况",
+          "score": 0.6278264284133911
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "关键链接汇总",
+          "score": 0.6056326556205749
+        }
+      ]
+    },
+    {
+      "id": "q_monitor_02",
+      "question": "tmux怎么用？SSH断了怎么办？",
+      "strict_section_rank": 2,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > SSH无法连接",
+          "score": 0.6315986251831055
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "实用工具",
+          "score": 0.603872748374939
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > 关闭浏览器任务会停吗？",
+          "score": 0.540795729637146
+        }
+      ]
+    },
+    {
+      "id": "q_domain_01",
+      "question": "怎么用apptainer容器运行自己的软件？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "107_platform_guide.md",
+          "heading": "Apptainer容器",
+          "score": 0.7538261641396417
+        },
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 如何访问/public下的软件",
+          "score": 0.5952010003725687
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "关键链接",
+          "score": 0.5299698710441589
+        }
+      ]
+    },
+    {
+      "id": "q_domain_02",
+      "question": "深度学习训练的完整流程是什么？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "学科场景指南 > 深度学习作业",
+          "score": 0.640024942557017
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > 训练OOM（CUDA out of memory）",
+          "score": 0.5728697427113851
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "常见问题（FAQ） > nvidia-smi找不到GPU",
+          "score": 0.5010543465614319
+        }
+      ]
+    },
+    {
+      "id": "q_domain_03",
+      "question": "数学统计模拟怎么提交批量作业？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "学科场景指南 > 数学统计",
+          "score": 0.6640148775473885
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "关键链接",
+          "score": 0.5709642171859741
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "学科场景指南 > 物理化学",
+          "score": 0.5623055049647455
+        }
+      ]
+    },
+    {
+      "id": "q_domain_04",
+      "question": "物理化学模拟有什么注意事项？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "学科场景指南 > 物理化学",
+          "score": 0.625606722831726
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "学科场景指南 > 数学统计",
+          "score": 0.4282989547469399
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "输出文件路径 > 不要写到/tmp",
+          "score": 0.3890266418457031
+        }
+      ]
+    },
+    {
+      "id": "q_errformat_01",
+      "question": "107平台的报错格式和Slurm文档不一样怎么办？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "error_format_handbook.md",
+          "heading": "错误格式匹配注意事项",
+          "score": 0.7875069794288049
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "常见错误与预防 > 2. 分区名/QOS名拼写错误",
+          "score": 0.729437530040741
+        },
+        {
+          "file": "scow_platform_guide.md",
+          "heading": "关键链接",
+          "score": 0.7235047389910771
+        }
+      ]
+    },
+    {
+      "id": "q_errformat_02",
+      "question": "TIMEOUT信息写在哪里？.out文件里有吗？",
+      "strict_section_rank": 0,
+      "file_rank": 0,
+      "production_results": [
+        {
+          "file": "107_platform_guide.md",
+          "heading": "常见问题与排查 > 作业运行失败",
+          "score": 0.7214274032910665
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "输出文件路径 > 标准输出和错误分开",
+          "score": 0.716675271458096
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "输出文件路径 > 不要写到/tmp",
+          "score": 0.6608846516079373
+        }
+      ]
+    },
+    {
+      "id": "q_errformat_03",
+      "question": "脚本没有set -e会怎样？",
+      "strict_section_rank": 1,
+      "file_rank": 1,
+      "production_results": [
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "set -euo pipefail 的使用 > 重要：无set -e时错误后继续执行",
+          "score": 0.9552020406723022
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "常见错误与预防 > 9. 没有set -e导致错误被忽略",
+          "score": 0.7805975027084351
+        },
+        {
+          "file": "sbatch_scripting_guide.md",
+          "heading": "set -euo pipefail 的使用 > 推荐在脚本开头加入",
+          "score": 0.7217578821182251
+        }
+      ]
+    }
+  ]
+}

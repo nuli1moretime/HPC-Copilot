@@ -1,0 +1,1465 @@
+{
+  "schema_version": 1,
+  "suite_id": "hpc-copilot-development-v2",
+  "suite_status": "development",
+  "model": "deepseek-v4-flash",
+  "temperature": 0.0,
+  "systems": {
+    "llm_only": {
+      "summary": {
+        "overall_score": 78.67,
+        "category_scores": {
+          "command_explanation": 100.0,
+          "diagnosis": 75.0,
+          "platform_qa": 72.22,
+          "script_generation": 63.69
+        },
+        "diagnosis_macro_f1": 0.75,
+        "forbidden_violation_count": 1,
+        "average_latency_seconds": 4.293,
+        "completed_cases": 12,
+        "total_cases": 12,
+        "run_complete": true
+      },
+      "cases": {
+        "dev_qa_001": {
+          "score": 50.0,
+          "earned_weight": 1.0,
+          "possible_weight": 2.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "P107-RTX5090"
+              ]
+            },
+            {
+              "name": "concept_2",
+              "passed": false,
+              "weight": 1.0,
+              "patterns": [
+                "qos_p107-rtx5090"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": null,
+          "response_empty": false,
+          "error": null
+        },
+        "dev_qa_002": {
+          "score": 66.67,
+          "earned_weight": 2.0,
+          "possible_weight": 3.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "sacct"
+              ]
+            },
+            {
+              "name": "concept_2",
+              "passed": false,
+              "weight": 1.0,
+              "patterns": [
+                "受限",
+                "不.{0,4}完全依赖",
+                "可能.{0,4}不可用"
+              ]
+            },
+            {
+              "name": "concept_3",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "scontrol",
+                "日志",
+                "输出文件",
+                "状态文件"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": null,
+          "response_empty": false,
+          "error": null
+        },
+        "dev_qa_003": {
+          "score": 100.0,
+          "earned_weight": 2.0,
+          "possible_weight": 2.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "不会停止",
+                "不会的",
+                "继续.{0,4}运行",
+                "照常运行",
+                "不受.{0,6}(网页|SSH).{0,6}影响"
+              ]
+            },
+            {
+              "name": "concept_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "sbatch",
+                "调度系统",
+                "Slurm"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": null,
+          "response_empty": false,
+          "error": null
+        },
+        "dev_cmd_001": {
+          "score": 100.0,
+          "earned_weight": 2.0,
+          "possible_weight": 2.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "squeue\\s+-u\\s+\\$USER",
+                "squeue\\s+--user[= ]\\$USER"
+              ]
+            },
+            {
+              "name": "concept_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "自己",
+                "当前用户"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": null,
+          "response_empty": false,
+          "error": null
+        },
+        "dev_cmd_002": {
+          "score": 100.0,
+          "earned_weight": 2.0,
+          "possible_weight": 2.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "通用资源",
+                "GRES",
+                "GPU资源"
+              ]
+            },
+            {
+              "name": "concept_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "1\\s*(?:张|块|个)?\\s*(?:GPU|显卡)",
+                "一张\\s*(?:GPU|显卡)",
+                "一个GPU"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": null,
+          "response_empty": false,
+          "error": null
+        },
+        "dev_cmd_003": {
+          "score": 100.0,
+          "earned_weight": 2.0,
+          "possible_weight": 2.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "命令行.{0,8}(优先|覆盖)",
+                "(优先|采用).{0,8}命令行"
+              ]
+            },
+            {
+              "name": "concept_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "#SBATCH",
+                "脚本"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": null,
+          "response_empty": false,
+          "error": null
+        },
+        "dev_diag_001": {
+          "score": 75.0,
+          "earned_weight": 3.0,
+          "possible_weight": 4.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": false,
+              "weight": 1.0,
+              "patterns": [
+                "sacctmgr\\s+show\\s+assoc",
+                "查看.{0,8}(可用|允许).{0,5}QoS"
+              ]
+            },
+            {
+              "name": "concept_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "--qos",
+                "#SBATCH.{0,5}--qos"
+              ]
+            },
+            {
+              "name": "error_type",
+              "passed": true,
+              "weight": 2.0,
+              "patterns": [
+                "INVALID_QOS",
+                "QoS.{0,8}(无效|错误|不匹配)",
+                "(无效|错误).{0,8}QoS"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": "INVALID_QOS",
+          "response_empty": false,
+          "error": null
+        },
+        "dev_diag_002": {
+          "score": 50.0,
+          "earned_weight": 2.0,
+          "possible_weight": 4.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "ls\\s+-l",
+                "检查.{0,8}(路径|文件名)",
+                "pwd"
+              ]
+            },
+            {
+              "name": "concept_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "train\\.py"
+              ]
+            },
+            {
+              "name": "error_type",
+              "passed": false,
+              "weight": 2.0,
+              "patterns": [
+                "ENTRYPOINT_NOT_FOUND",
+                "入口文件.{0,8}(不存在|找不到)",
+                "找不到.{0,8}train\\.py"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": "UNPARSEABLE",
+          "response_empty": false,
+          "error": null
+        },
+        "dev_diag_003": {
+          "score": 75.0,
+          "earned_weight": 3.0,
+          "possible_weight": 4.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "--time",
+                "运行时间"
+              ]
+            },
+            {
+              "name": "concept_2",
+              "passed": false,
+              "weight": 1.0,
+              "patterns": [
+                "增加",
+                "调大",
+                "延长"
+              ]
+            },
+            {
+              "name": "error_type",
+              "passed": true,
+              "weight": 2.0,
+              "patterns": [
+                "TIMEOUT",
+                "超时",
+                "时间上限"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": "TIMEOUT",
+          "response_empty": false,
+          "error": null
+        },
+        "dev_diag_004": {
+          "score": 100.0,
+          "earned_weight": 3.0,
+          "possible_weight": 3.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "Exit code:?\\s*0",
+                "退出码.{0,4}0",
+                "成功"
+              ]
+            },
+            {
+              "name": "error_type",
+              "passed": true,
+              "weight": 2.0,
+              "patterns": [
+                "UNKNOWN",
+                "没有.{0,6}(错误|异常)",
+                "正常完成",
+                "无需修复"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": "UNKNOWN",
+          "response_empty": false,
+          "error": null
+        },
+        "dev_script_001": {
+          "score": 41.67,
+          "earned_weight": 4.0,
+          "possible_weight": 6.0,
+          "checks": [
+            {
+              "name": "required_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "^\\s*#!/bin/bash"
+              ]
+            },
+            {
+              "name": "required_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "#SBATCH\\s+(?:-p\\s+Students|--partition(?:=|\\s+)Students)"
+              ]
+            },
+            {
+              "name": "required_3",
+              "passed": false,
+              "weight": 1.0,
+              "patterns": [
+                "#SBATCH\\s+--qos(?:=|\\s+)qos_stu_default"
+              ]
+            },
+            {
+              "name": "required_4",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "#SBATCH\\s+(?:-t|--time(?:=|\\s+))\\s*00:05:00"
+              ]
+            },
+            {
+              "name": "required_5",
+              "passed": false,
+              "weight": 1.0,
+              "patterns": [
+                "mkdir\\s+-p\\s+logs"
+              ]
+            },
+            {
+              "name": "required_6",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "sum\\s*\\(\\s*range\\s*\\(\\s*1\\s*,\\s*101\\s*\\)\\s*\\)"
+              ]
+            }
+          ],
+          "forbidden_violations": [
+            "qos_p107-a100"
+          ],
+          "predicted_error_type": null,
+          "response_empty": false,
+          "error": null
+        },
+        "dev_script_002": {
+          "score": 85.71,
+          "earned_weight": 6.0,
+          "possible_weight": 7.0,
+          "checks": [
+            {
+              "name": "required_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "^\\s*#!/bin/bash"
+              ]
+            },
+            {
+              "name": "required_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "#SBATCH\\s+(?:-p\\s+P107-A100|--partition(?:=|\\s+)P107-A100)"
+              ]
+            },
+            {
+              "name": "required_3",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "#SBATCH\\s+--qos(?:=|\\s+)qos_p107-a100"
+              ]
+            },
+            {
+              "name": "required_4",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "#SBATCH\\s+--gres(?:=|\\s+)gpu(?::A100)?:1"
+              ]
+            },
+            {
+              "name": "required_5",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "module\\s+load\\s+cuda/13\\.0"
+              ]
+            },
+            {
+              "name": "required_6",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "nvcc.+vector_add\\.cu"
+              ]
+            },
+            {
+              "name": "required_7",
+              "passed": false,
+              "weight": 1.0,
+              "patterns": [
+                "mkdir\\s+-p\\s+logs"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": null,
+          "response_empty": false,
+          "error": null
+        }
+      }
+    },
+    "llm_rag": {
+      "summary": {
+        "overall_score": 93.75,
+        "category_scores": {
+          "command_explanation": 100.0,
+          "diagnosis": 81.25,
+          "platform_qa": 100.0,
+          "script_generation": 100.0
+        },
+        "diagnosis_macro_f1": 1.0,
+        "forbidden_violation_count": 0,
+        "average_latency_seconds": 4.136,
+        "completed_cases": 12,
+        "total_cases": 12,
+        "run_complete": true
+      },
+      "cases": {
+        "dev_qa_001": {
+          "score": 100.0,
+          "earned_weight": 2.0,
+          "possible_weight": 2.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "P107-RTX5090"
+              ]
+            },
+            {
+              "name": "concept_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "qos_p107-rtx5090"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": null,
+          "response_empty": false,
+          "error": null
+        },
+        "dev_qa_002": {
+          "score": 100.0,
+          "earned_weight": 3.0,
+          "possible_weight": 3.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "sacct"
+              ]
+            },
+            {
+              "name": "concept_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "受限",
+                "不.{0,4}完全依赖",
+                "可能.{0,4}不可用"
+              ]
+            },
+            {
+              "name": "concept_3",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "scontrol",
+                "日志",
+                "输出文件",
+                "状态文件"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": null,
+          "response_empty": false,
+          "error": null
+        },
+        "dev_qa_003": {
+          "score": 100.0,
+          "earned_weight": 2.0,
+          "possible_weight": 2.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "不会停止",
+                "不会的",
+                "继续.{0,4}运行",
+                "照常运行",
+                "不受.{0,6}(网页|SSH).{0,6}影响"
+              ]
+            },
+            {
+              "name": "concept_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "sbatch",
+                "调度系统",
+                "Slurm"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": null,
+          "response_empty": false,
+          "error": null
+        },
+        "dev_cmd_001": {
+          "score": 100.0,
+          "earned_weight": 2.0,
+          "possible_weight": 2.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "squeue\\s+-u\\s+\\$USER",
+                "squeue\\s+--user[= ]\\$USER"
+              ]
+            },
+            {
+              "name": "concept_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "自己",
+                "当前用户"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": null,
+          "response_empty": false,
+          "error": null
+        },
+        "dev_cmd_002": {
+          "score": 100.0,
+          "earned_weight": 2.0,
+          "possible_weight": 2.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "通用资源",
+                "GRES",
+                "GPU资源"
+              ]
+            },
+            {
+              "name": "concept_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "1\\s*(?:张|块|个)?\\s*(?:GPU|显卡)",
+                "一张\\s*(?:GPU|显卡)",
+                "一个GPU"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": null,
+          "response_empty": false,
+          "error": null
+        },
+        "dev_cmd_003": {
+          "score": 100.0,
+          "earned_weight": 2.0,
+          "possible_weight": 2.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "命令行.{0,8}(优先|覆盖)",
+                "(优先|采用).{0,8}命令行"
+              ]
+            },
+            {
+              "name": "concept_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "#SBATCH",
+                "脚本"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": null,
+          "response_empty": false,
+          "error": null
+        },
+        "dev_diag_001": {
+          "score": 75.0,
+          "earned_weight": 3.0,
+          "possible_weight": 4.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": false,
+              "weight": 1.0,
+              "patterns": [
+                "sacctmgr\\s+show\\s+assoc",
+                "查看.{0,8}(可用|允许).{0,5}QoS"
+              ]
+            },
+            {
+              "name": "concept_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "--qos",
+                "#SBATCH.{0,5}--qos"
+              ]
+            },
+            {
+              "name": "error_type",
+              "passed": true,
+              "weight": 2.0,
+              "patterns": [
+                "INVALID_QOS",
+                "QoS.{0,8}(无效|错误|不匹配)",
+                "(无效|错误).{0,8}QoS"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": "INVALID_QOS",
+          "response_empty": false,
+          "error": null
+        },
+        "dev_diag_002": {
+          "score": 75.0,
+          "earned_weight": 3.0,
+          "possible_weight": 4.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": false,
+              "weight": 1.0,
+              "patterns": [
+                "ls\\s+-l",
+                "检查.{0,8}(路径|文件名)",
+                "pwd"
+              ]
+            },
+            {
+              "name": "concept_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "train\\.py"
+              ]
+            },
+            {
+              "name": "error_type",
+              "passed": true,
+              "weight": 2.0,
+              "patterns": [
+                "ENTRYPOINT_NOT_FOUND",
+                "入口文件.{0,8}(不存在|找不到)",
+                "找不到.{0,8}train\\.py"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": "ENTRYPOINT_NOT_FOUND",
+          "response_empty": false,
+          "error": null
+        },
+        "dev_diag_003": {
+          "score": 75.0,
+          "earned_weight": 3.0,
+          "possible_weight": 4.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "--time",
+                "运行时间"
+              ]
+            },
+            {
+              "name": "concept_2",
+              "passed": false,
+              "weight": 1.0,
+              "patterns": [
+                "增加",
+                "调大",
+                "延长"
+              ]
+            },
+            {
+              "name": "error_type",
+              "passed": true,
+              "weight": 2.0,
+              "patterns": [
+                "TIMEOUT",
+                "超时",
+                "时间上限"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": "TIMEOUT",
+          "response_empty": false,
+          "error": null
+        },
+        "dev_diag_004": {
+          "score": 100.0,
+          "earned_weight": 3.0,
+          "possible_weight": 3.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "Exit code:?\\s*0",
+                "退出码.{0,4}0",
+                "成功"
+              ]
+            },
+            {
+              "name": "error_type",
+              "passed": true,
+              "weight": 2.0,
+              "patterns": [
+                "UNKNOWN",
+                "没有.{0,6}(错误|异常)",
+                "正常完成",
+                "无需修复"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": "UNKNOWN",
+          "response_empty": false,
+          "error": null
+        },
+        "dev_script_001": {
+          "score": 100.0,
+          "earned_weight": 6.0,
+          "possible_weight": 6.0,
+          "checks": [
+            {
+              "name": "required_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "^\\s*#!/bin/bash"
+              ]
+            },
+            {
+              "name": "required_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "#SBATCH\\s+(?:-p\\s+Students|--partition(?:=|\\s+)Students)"
+              ]
+            },
+            {
+              "name": "required_3",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "#SBATCH\\s+--qos(?:=|\\s+)qos_stu_default"
+              ]
+            },
+            {
+              "name": "required_4",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "#SBATCH\\s+(?:-t|--time(?:=|\\s+))\\s*00:05:00"
+              ]
+            },
+            {
+              "name": "required_5",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "mkdir\\s+-p\\s+logs"
+              ]
+            },
+            {
+              "name": "required_6",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "sum\\s*\\(\\s*range\\s*\\(\\s*1\\s*,\\s*101\\s*\\)\\s*\\)"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": null,
+          "response_empty": false,
+          "error": null
+        },
+        "dev_script_002": {
+          "score": 100.0,
+          "earned_weight": 7.0,
+          "possible_weight": 7.0,
+          "checks": [
+            {
+              "name": "required_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "^\\s*#!/bin/bash"
+              ]
+            },
+            {
+              "name": "required_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "#SBATCH\\s+(?:-p\\s+P107-A100|--partition(?:=|\\s+)P107-A100)"
+              ]
+            },
+            {
+              "name": "required_3",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "#SBATCH\\s+--qos(?:=|\\s+)qos_p107-a100"
+              ]
+            },
+            {
+              "name": "required_4",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "#SBATCH\\s+--gres(?:=|\\s+)gpu(?::A100)?:1"
+              ]
+            },
+            {
+              "name": "required_5",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "module\\s+load\\s+cuda/13\\.0"
+              ]
+            },
+            {
+              "name": "required_6",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "nvcc.+vector_add\\.cu"
+              ]
+            },
+            {
+              "name": "required_7",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "mkdir\\s+-p\\s+logs"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": null,
+          "response_empty": false,
+          "error": null
+        }
+      }
+    },
+    "hpc_copilot": {
+      "summary": {
+        "overall_score": 97.92,
+        "category_scores": {
+          "command_explanation": 91.67,
+          "diagnosis": 100.0,
+          "platform_qa": 100.0,
+          "script_generation": 100.0
+        },
+        "diagnosis_macro_f1": 1.0,
+        "forbidden_violation_count": 1,
+        "average_latency_seconds": 5.896,
+        "completed_cases": 12,
+        "total_cases": 12,
+        "run_complete": true
+      },
+      "cases": {
+        "dev_qa_001": {
+          "score": 100.0,
+          "earned_weight": 2.0,
+          "possible_weight": 2.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "P107-RTX5090"
+              ]
+            },
+            {
+              "name": "concept_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "qos_p107-rtx5090"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": null,
+          "response_empty": false,
+          "error": null
+        },
+        "dev_qa_002": {
+          "score": 100.0,
+          "earned_weight": 3.0,
+          "possible_weight": 3.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "sacct"
+              ]
+            },
+            {
+              "name": "concept_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "受限",
+                "不.{0,4}完全依赖",
+                "可能.{0,4}不可用"
+              ]
+            },
+            {
+              "name": "concept_3",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "scontrol",
+                "日志",
+                "输出文件",
+                "状态文件"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": null,
+          "response_empty": false,
+          "error": null
+        },
+        "dev_qa_003": {
+          "score": 100.0,
+          "earned_weight": 2.0,
+          "possible_weight": 2.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "不会停止",
+                "不会的",
+                "继续.{0,4}运行",
+                "照常运行",
+                "不受.{0,6}(网页|SSH).{0,6}影响"
+              ]
+            },
+            {
+              "name": "concept_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "sbatch",
+                "调度系统",
+                "Slurm"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": null,
+          "response_empty": false,
+          "error": null
+        },
+        "dev_cmd_001": {
+          "score": 100.0,
+          "earned_weight": 2.0,
+          "possible_weight": 2.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "squeue\\s+-u\\s+\\$USER",
+                "squeue\\s+--user[= ]\\$USER"
+              ]
+            },
+            {
+              "name": "concept_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "自己",
+                "当前用户"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": null,
+          "response_empty": false,
+          "error": null
+        },
+        "dev_cmd_002": {
+          "score": 75.0,
+          "earned_weight": 2.0,
+          "possible_weight": 2.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "通用资源",
+                "GRES",
+                "GPU资源"
+              ]
+            },
+            {
+              "name": "concept_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "1\\s*(?:张|块|个)?\\s*(?:GPU|显卡)",
+                "一张\\s*(?:GPU|显卡)",
+                "一个GPU"
+              ]
+            }
+          ],
+          "forbidden_violations": [
+            "P107-A100.{0,35}(?:8\\s*张|gpu:8)|(?:8\\s*张|gpu:8).{0,35}P107-A100"
+          ],
+          "predicted_error_type": null,
+          "response_empty": false,
+          "error": null
+        },
+        "dev_cmd_003": {
+          "score": 100.0,
+          "earned_weight": 2.0,
+          "possible_weight": 2.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "命令行.{0,8}(优先|覆盖)",
+                "(优先|采用).{0,8}命令行"
+              ]
+            },
+            {
+              "name": "concept_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "#SBATCH",
+                "脚本"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": null,
+          "response_empty": false,
+          "error": null
+        },
+        "dev_diag_001": {
+          "score": 100.0,
+          "earned_weight": 4.0,
+          "possible_weight": 4.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "sacctmgr\\s+show\\s+assoc",
+                "查看.{0,8}(可用|允许).{0,5}QoS"
+              ]
+            },
+            {
+              "name": "concept_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "--qos",
+                "#SBATCH.{0,5}--qos"
+              ]
+            },
+            {
+              "name": "error_type",
+              "passed": true,
+              "weight": 2.0,
+              "patterns": [
+                "INVALID_QOS",
+                "QoS.{0,8}(无效|错误|不匹配)",
+                "(无效|错误).{0,8}QoS"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": "INVALID_QOS",
+          "response_empty": false,
+          "error": null
+        },
+        "dev_diag_002": {
+          "score": 100.0,
+          "earned_weight": 4.0,
+          "possible_weight": 4.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "ls\\s+-l",
+                "检查.{0,8}(路径|文件名)",
+                "pwd"
+              ]
+            },
+            {
+              "name": "concept_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "train\\.py"
+              ]
+            },
+            {
+              "name": "error_type",
+              "passed": true,
+              "weight": 2.0,
+              "patterns": [
+                "ENTRYPOINT_NOT_FOUND",
+                "入口文件.{0,8}(不存在|找不到)",
+                "找不到.{0,8}train\\.py"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": "ENTRYPOINT_NOT_FOUND",
+          "response_empty": false,
+          "error": null
+        },
+        "dev_diag_003": {
+          "score": 100.0,
+          "earned_weight": 4.0,
+          "possible_weight": 4.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "--time",
+                "运行时间"
+              ]
+            },
+            {
+              "name": "concept_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "增加",
+                "调大",
+                "延长"
+              ]
+            },
+            {
+              "name": "error_type",
+              "passed": true,
+              "weight": 2.0,
+              "patterns": [
+                "TIMEOUT",
+                "超时",
+                "时间上限"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": "TIMEOUT",
+          "response_empty": false,
+          "error": null
+        },
+        "dev_diag_004": {
+          "score": 100.0,
+          "earned_weight": 3.0,
+          "possible_weight": 3.0,
+          "checks": [
+            {
+              "name": "concept_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "Exit code:?\\s*0",
+                "退出码.{0,4}0",
+                "成功"
+              ]
+            },
+            {
+              "name": "error_type",
+              "passed": true,
+              "weight": 2.0,
+              "patterns": [
+                "UNKNOWN",
+                "没有.{0,6}(错误|异常)",
+                "正常完成",
+                "无需修复"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": "UNKNOWN",
+          "response_empty": false,
+          "error": null
+        },
+        "dev_script_001": {
+          "score": 100.0,
+          "earned_weight": 6.0,
+          "possible_weight": 6.0,
+          "checks": [
+            {
+              "name": "required_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "^\\s*#!/bin/bash"
+              ]
+            },
+            {
+              "name": "required_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "#SBATCH\\s+(?:-p\\s+Students|--partition(?:=|\\s+)Students)"
+              ]
+            },
+            {
+              "name": "required_3",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "#SBATCH\\s+--qos(?:=|\\s+)qos_stu_default"
+              ]
+            },
+            {
+              "name": "required_4",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "#SBATCH\\s+(?:-t|--time(?:=|\\s+))\\s*00:05:00"
+              ]
+            },
+            {
+              "name": "required_5",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "mkdir\\s+-p\\s+logs"
+              ]
+            },
+            {
+              "name": "required_6",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "sum\\s*\\(\\s*range\\s*\\(\\s*1\\s*,\\s*101\\s*\\)\\s*\\)"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": null,
+          "response_empty": false,
+          "error": null
+        },
+        "dev_script_002": {
+          "score": 100.0,
+          "earned_weight": 7.0,
+          "possible_weight": 7.0,
+          "checks": [
+            {
+              "name": "required_1",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "^\\s*#!/bin/bash"
+              ]
+            },
+            {
+              "name": "required_2",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "#SBATCH\\s+(?:-p\\s+P107-A100|--partition(?:=|\\s+)P107-A100)"
+              ]
+            },
+            {
+              "name": "required_3",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "#SBATCH\\s+--qos(?:=|\\s+)qos_p107-a100"
+              ]
+            },
+            {
+              "name": "required_4",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "#SBATCH\\s+--gres(?:=|\\s+)gpu(?::A100)?:1"
+              ]
+            },
+            {
+              "name": "required_5",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "module\\s+load\\s+cuda/13\\.0"
+              ]
+            },
+            {
+              "name": "required_6",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "nvcc.+vector_add\\.cu"
+              ]
+            },
+            {
+              "name": "required_7",
+              "passed": true,
+              "weight": 1.0,
+              "patterns": [
+                "mkdir\\s+-p\\s+logs"
+              ]
+            }
+          ],
+          "forbidden_violations": [],
+          "predicted_error_type": null,
+          "response_empty": false,
+          "error": null
+        }
+      }
+    }
+  }
+}

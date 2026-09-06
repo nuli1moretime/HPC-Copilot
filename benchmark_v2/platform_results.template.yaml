@@ -1,0 +1,16 @@
+schema_version: 1
+suite_id: replace-with-suite-id
+freeze_aggregate_sha256: replace-with-freeze-hash
+description: >-
+  每个脚本必须原样保存后提交。不要在提交前人工修复；否则 first_submission_success 必须记为 false。
+runs:
+  - case_id: replace-with-script-case-id
+    system: llm_only
+    submitted: false
+    first_submission_success: false
+    job_id: null
+    final_state: NOT_RUN
+    exit_code: null
+    expected_output_found: false
+    raw_log_file: null
+    notes: null

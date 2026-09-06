@@ -109,6 +109,39 @@ body {
   animation: status-breathe 2s ease-in-out infinite;
 }
 
+/* ─── 作业工作流：进入、活动图标、旋转状态与进度扫光 ─── */
+@keyframes workflow-enter {
+  from { opacity: 0; transform: translateY(8px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes workflow-float {
+  0%, 100% { transform: translateY(0); filter: drop-shadow(0 0 0 rgba(56,189,248,0)); }
+  50% { transform: translateY(-2px); filter: drop-shadow(0 0 5px rgba(56,189,248,.45)); }
+}
+@keyframes workflow-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes workflow-shimmer {
+  from { background-position: 180% 0; }
+  to { background-position: -80% 0; }
+}
+.workflow-enter { animation: workflow-enter .28s ease-out both; }
+.workflow-icon-live { display: inline-block; animation: workflow-float 1.8s ease-in-out infinite; }
+.workflow-ring {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border: 2px solid rgba(96,165,250,.25);
+  border-top-color: var(--info);
+  border-radius: 999px;
+  animation: workflow-spin .8s linear infinite;
+}
+.workflow-progress-live {
+  background-size: 220% 100% !important;
+  background-image: linear-gradient(90deg, #0051a8 0%, #38bdf8 45%, #dbeafe 55%, #38bdf8 65%, #0051a8 100%) !important;
+  animation: workflow-shimmer 1.8s linear infinite;
+}
+
 /* ─── xterm 容器对齐设计底色 ─── */
 .xterm {
   background: var(--bg-deep) !important;

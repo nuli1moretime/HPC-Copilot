@@ -1,10 +1,13 @@
 import { useState } from 'react'
+import { JOB_TEMPLATES } from '../data/jobTemplates'
 
 interface Props {
   onRunCommand?: (cmd: string) => void
+  /** 点击作业模板卡片时触发：ID 用于协议，request 用于对话区自然语言展示。 */
+  onRunTemplate?: (templateId: string, request: string) => void
 }
 
-type PanelTab = 'commands' | 'info'
+type PanelTab = 'commands' | 'info' | 'templates'
 
 // ─── Slurm 常用命令速查 ───
 const SLURM_COMMANDS: { cmd: string; desc: string }[] = [
@@ -51,8 +54,16 @@ function IconInfo() {
     </svg>
   )
 }
+function IconSparkles() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3l1.9 5.7L19.5 10l-5.6 1.9L12 17.5l-1.9-5.6L4.5 10l5.6-1.3z" />
+      <path d="M19 15l.9 2.6L22.5 18l-2.6.9L19 21.5l-.9-2.6L15.5 18l2.6-.4z" />
+    </svg>
+  )
+}
 
-export default function ConsoleSidebar({ onRunCommand }: Props) {
+export default function ConsoleSidebar({ onRunCommand, onRunTemplate }: Props) {
   // 默认展开"命令速查"，让左侧一开始就有内容
   const [active, setActive] = useState<PanelTab | null>('commands')
 
@@ -79,6 +90,11 @@ export default function ConsoleSidebar({ onRunCommand }: Props) {
     )
   }
 
+  const panelTitle =
+    active === 'commands' ? '命令速查' :
+    active === 'info' ? '平台信息' :
+    active === 'templates' ? '作业模板' : ''
+
   return (
     <div className="flex h-full flex-shrink-0">
       {/* ─── 活动栏 ─── */}
@@ -91,6 +107,7 @@ export default function ConsoleSidebar({ onRunCommand }: Props) {
           <IconTerminal />
         </div>
         <div className="w-5 h-px bg-[var(--border)] my-1.5" />
+        {iconBtn('templates', '作业模板（一键触发 Agent）', <IconSparkles />)}
         {iconBtn('commands', '命令速查', <IconBook />)}
         {iconBtn('info', '平台信息', <IconInfo />)}
       </div>
@@ -100,9 +117,7 @@ export default function ConsoleSidebar({ onRunCommand }: Props) {
         <div className="w-60 flex flex-col bg-[var(--bg-panel)] border-r border-[var(--border)]">
           {/* 面板标题 */}
           <div className="flex items-center justify-between px-3.5 h-9 flex-shrink-0 border-b border-[var(--border)]">
-            <span className="text-xs font-semibold text-[var(--text-primary)]">
-              {active === 'commands' ? '命令速查' : '平台信息'}
-            </span>
+            <span className="text-xs font-semibold text-[var(--text-primary)]">{panelTitle}</span>
             <button
               onClick={() => setActive(null)}
               className="text-[var(--text-muted)] hover:text-[var(--text-primary)] text-sm leading-none transition-colors"
@@ -114,7 +129,48 @@ export default function ConsoleSidebar({ onRunCommand }: Props) {
 
           {/* 面板内容 */}
           <div className="flex-1 overflow-y-auto p-3 space-y-2">
-            {active === 'commands' ? (
+            {active === 'templates' && (
+              <>
+                <p className="text-[11px] text-[var(--text-dim)] leading-relaxed px-0.5">
+                  一键触发预设工作流，自动完成写脚本→提交→轮询→AI总结全流程。
+                </p>
+                {JOB_TEMPLATES.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => onRunTemplate?.(t.id, t.request)}
+                    disabled={!onRunTemplate}
+                    className="w-full text-left rounded-[var(--radius-md)] bg-[var(--bg-elevated)] border border-[var(--border)] p-2.5 hover:border-[var(--accent-blue-end)] hover:shadow-[0_0_10px_rgba(0,81,168,.08)] transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
+                  >
+                    <div className="flex items-start gap-2">
+                      <span className="text-base flex-shrink-0 leading-none mt-0.5">{t.icon}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-semibold text-[var(--text-primary)] group-hover:text-white transition-colors truncate">
+                            {t.title}
+                          </span>
+                          <span className="text-[9px] px-1.5 py-px rounded-full bg-[rgba(0,81,168,.15)] text-[var(--info)] border border-[rgba(0,81,168,.25)] flex-shrink-0">
+                            {t.tag}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-[var(--text-muted)] mt-1 leading-relaxed">
+                          {t.desc}
+                        </div>
+                        <div className="text-[10px] text-[var(--info)] mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          ▶ 一键执行工作流
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+                <div className="rounded-[var(--radius-md)] bg-[rgba(96,165,250,.06)] border border-[rgba(96,165,250,.2)] px-2.5 py-2 mt-1">
+                  <div className="text-[11px] text-[var(--info)] leading-relaxed">
+                    💡 模板会把预设指令发给右侧对话面板，Agent 会实时展示每一步工具调用。
+                  </div>
+                </div>
+              </>
+            )}
+
+            {active === 'commands' && (
               <>
                 <p className="text-[11px] text-[var(--text-dim)] leading-relaxed px-0.5">
                   常用 Slurm 命令，点击 ▶ 直接在终端执行。
@@ -151,7 +207,9 @@ export default function ConsoleSidebar({ onRunCommand }: Props) {
                   )
                 })}
               </>
-            ) : (
+            )}
+
+            {active === 'info' && (
               <>
                 {/* 分区 */}
                 <div className="text-[11px] text-[var(--text-dim)] uppercase tracking-wide px-0.5 pt-1">分区</div>

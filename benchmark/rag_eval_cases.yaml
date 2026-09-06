@@ -1,0 +1,626 @@
+# RAG 评测测试集（完整版）
+# 覆盖所有知识库文档的主要知识点
+# 每条：问题 + 期望命中的文档块（source_file + heading 关键词）
+
+test_cases:
+  # ═══════════════════════════════════════════════════════════════
+  # 分区与QoS（107_platform_guide + slurm_command_reference）
+  # ═══════════════════════════════════════════════════════════════
+  - id: q_partition_01
+    question: "107平台有哪些分区？比赛用哪个？"
+    expected_hits:
+      - file: "107_platform_guide.md"
+        heading_contains: "分区与QoS"
+      - file: "slurm_command_reference.md"
+        heading_contains: "107平台分区速查"
+
+  - id: q_partition_02
+    question: "P107-RTX5090和P107-A100有什么区别？"
+    expected_hits:
+      - file: "107_platform_guide.md"
+        heading_contains: "分区与QoS"
+      - file: "slurm_command_reference.md"
+        heading_contains: "107平台分区速查"
+
+  - id: q_partition_03
+    question: "Students分区包含哪些节点？"
+    expected_hits:
+      - file: "slurm_command_reference.md"
+        heading_contains: "107平台分区速查"
+      - file: "scow_platform_guide.md"
+        heading_contains: "平台状态快照"
+
+  - id: q_qos_01
+    question: "qos_p107-rtx5090最多能用几个GPU？"
+    expected_hits:
+      - file: "107_platform_guide.md"
+        heading_contains: "分区与QoS"
+      - file: "slurm_command_reference.md"
+        heading_contains: "107平台QOS速查"
+
+  - id: q_qos_02
+    question: "怎么查看自己可用的QoS？"
+    expected_hits:
+      - file: "slurm_command_reference.md"
+        heading_contains: "sacctmgr"
+      - file: "107_platform_guide.md"
+        heading_contains: "分区与QoS"
+
+  - id: q_qos_limit_01
+    question: "为什么报QOSMaxWallDurationPerJobLimit错误？"
+    expected_hits:
+      - file: "error_format_handbook.md"
+        heading_contains: "QOS限制类错误"
+      - file: "scow_platform_guide.md"
+        heading_contains: "常见问题"
+
+  - id: q_qos_limit_02
+    question: "QOSMaxCpuPerUserLimit是什么意思？"
+    expected_hits:
+      - file: "error_format_handbook.md"
+        heading_contains: "QOS限制类错误"
+      - file: "scow_platform_guide.md"
+        heading_contains: "常见问题"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 作业提交与SBATCH脚本（sbatch_scripting_guide + 107_platform_guide）
+  # ═══════════════════════════════════════════════════════════════
+  - id: q_submit_01
+    question: "怎么写一个GPU训练的sbatch脚本？"
+    expected_hits:
+      - file: "sbatch_scripting_guide.md"
+        heading_contains: "完整模板集合"
+      - file: "107_platform_guide.md"
+        heading_contains: "典型作业模板"
+
+  - id: q_submit_02
+    question: "sbatch脚本的基本结构是什么？"
+    expected_hits:
+      - file: "sbatch_scripting_guide.md"
+        heading_contains: "脚本基本结构"
+
+  - id: q_submit_03
+    question: "SBATCH参数--gres=gpu:1是什么意思？"
+    expected_hits:
+      - file: "slurm_command_reference.md"
+        heading_contains: "SBATCH 参数详解"
+      - file: "sbatch_scripting_guide.md"
+        heading_contains: "脚本基本结构"
+
+  - id: q_submit_04
+    question: "怎么提交数组作业？"
+    expected_hits:
+      - file: "sbatch_scripting_guide.md"
+        heading_contains: "完整模板集合"
+      - file: "107_platform_guide.md"
+        heading_contains: "典型作业模板"
+
+  - id: q_submit_05
+    question: "怎么提交多节点MPI并行作业？"
+    expected_hits:
+      - file: "sbatch_scripting_guide.md"
+        heading_contains: "多节点MPI并行作业"
+      - file: "107_platform_guide.md"
+        heading_contains: "典型作业模板"
+
+  - id: q_submit_06
+    question: "sbatch命令行参数会覆盖脚本里的#SBATCH吗？"
+    expected_hits:
+      - file: "sbatch_scripting_guide.md"
+        heading_contains: "必须遵守的平台约束"
+      - file: "slurm_command_reference.md"
+        heading_contains: "sbatch"
+
+  - id: q_submit_07
+    question: "提交前需要检查什么？"
+    expected_hits:
+      - file: "sbatch_scripting_guide.md"
+        heading_contains: "提交前检查清单"
+      - file: "scow_platform_guide.md"
+        heading_contains: "作业提交"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 错误诊断（error_format_handbook）
+  # ═══════════════════════════════════════════════════════════════
+  - id: q_err_partition
+    question: "sbatch报invalid partition怎么办？"
+    expected_hits:
+      - file: "error_format_handbook.md"
+        heading_contains: "INVALID_PARTITION"
+      - file: "slurm_command_reference.md"
+        heading_contains: "排查流程决策树"
+
+  - id: q_err_qos
+    question: "Invalid qos specification是什么意思？"
+    expected_hits:
+      - file: "error_format_handbook.md"
+        heading_contains: "INVALID_QOS"
+
+  - id: q_err_workdir
+    question: "chdir failed: No such file or directory怎么解决？"
+    expected_hits:
+      - file: "error_format_handbook.md"
+        heading_contains: "WORKDIR_NOT_FOUND"
+
+  - id: q_err_entrypoint
+    question: "python: can't open file是什么问题？"
+    expected_hits:
+      - file: "error_format_handbook.md"
+        heading_contains: "ENTRYPOINT_NOT_FOUND"
+
+  - id: q_err_module
+    question: "Unable to locate a modulefile怎么办？"
+    expected_hits:
+      - file: "error_format_handbook.md"
+        heading_contains: "MODULE_NOT_FOUND"
+      - file: "107_platform_guide.md"
+        heading_contains: "软件环境"
+
+  - id: q_err_timeout
+    question: "CANCELLED DUE TO TIME LIMIT是什么意思？"
+    expected_hits:
+      - file: "error_format_handbook.md"
+        heading_contains: "TIMEOUT"
+      - file: "sbatch_scripting_guide.md"
+        heading_contains: "时间格式"
+
+  - id: q_err_oom
+    question: "slurmstepd报oom-kill是什么意思？"
+    expected_hits:
+      - file: "error_format_handbook.md"
+        heading_contains: "OUT_OF_MEMORY"
+
+  - id: q_err_exit
+    question: "Traceback most recent call last怎么排查？"
+    expected_hits:
+      - file: "error_format_handbook.md"
+        heading_contains: "PROGRAM_EXIT_NONZERO"
+
+  - id: q_err_disk
+    question: "Disk quota exceeded怎么办？"
+    expected_hits:
+      - file: "error_format_handbook.md"
+        heading_contains: "DISK_QUOTA"
+
+  - id: q_err_permission
+    question: "Permission denied写到/root下面就报错了"
+    expected_hits:
+      - file: "error_format_handbook.md"
+        heading_contains: "PERMISSION_DENIED"
+      - file: "107_platform_guide.md"
+        heading_contains: "平台限制与注意事项"
+
+  - id: q_err_gpu_oom
+    question: "CUDA out of memory怎么解决？"
+    expected_hits:
+      - file: "error_format_handbook.md"
+        heading_contains: "GPU_OOM"
+      - file: "scow_platform_guide.md"
+        heading_contains: "常见问题"
+
+  - id: q_err_node_fail
+    question: "Node failure是什么意思？"
+    expected_hits:
+      - file: "error_format_handbook.md"
+        heading_contains: "NODE_FAIL"
+
+  - id: q_err_preempted
+    question: "作业被PREEMPTED了怎么办？"
+    expected_hits:
+      - file: "error_format_handbook.md"
+        heading_contains: "PREEMPTED"
+
+  - id: q_err_conda
+    question: "conda: command not found怎么解决？"
+    expected_hits:
+      - file: "error_format_handbook.md"
+        heading_contains: "CONDA_ENV"
+      - file: "sbatch_scripting_guide.md"
+        heading_contains: "Conda环境激活"
+
+  - id: q_err_cuda_device
+    question: "Torch not compiled with CUDA enabled怎么办？"
+    expected_hits:
+      - file: "error_format_handbook.md"
+        heading_contains: "CUDA_DEVICE"
+      - file: "scow_platform_guide.md"
+        heading_contains: "环境配置"
+
+  - id: q_err_time_format
+    question: "Invalid time limit specification怎么改？"
+    expected_hits:
+      - file: "error_format_handbook.md"
+        heading_contains: "INVALID_TIME"
+      - file: "sbatch_scripting_guide.md"
+        heading_contains: "时间格式"
+
+  - id: q_err_dependency
+    question: "Dependency failed是什么意思？"
+    expected_hits:
+      - file: "error_format_handbook.md"
+        heading_contains: "DEPENDENCY"
+
+  - id: q_err_account
+    question: "Invalid account specification怎么解决？"
+    expected_hits:
+      - file: "error_format_handbook.md"
+        heading_contains: "ACCOUNT_ISSUE"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 环境配置（scow_platform_guide + sbatch_scripting_guide）
+  # ═══════════════════════════════════════════════════════════════
+  - id: q_conda_01
+    question: "怎么在作业脚本里激活conda环境？"
+    expected_hits:
+      - file: "sbatch_scripting_guide.md"
+        heading_contains: "Conda环境激活"
+      - file: "scow_platform_guide.md"
+        heading_contains: "环境配置"
+
+  - id: q_conda_02
+    question: "为什么需要set +u和set -u包裹conda激活？"
+    expected_hits:
+      - file: "sbatch_scripting_guide.md"
+        heading_contains: "Conda环境激活"
+
+  - id: q_conda_03
+    question: "怎么安装GPU版的PyTorch？"
+    expected_hits:
+      - file: "scow_platform_guide.md"
+        heading_contains: "环境配置"
+      - file: "sbatch_scripting_guide.md"
+        heading_contains: "GPU相关注意事项"
+
+  - id: q_module_01
+    question: "107平台有哪些可用的module？"
+    expected_hits:
+      - file: "107_platform_guide.md"
+        heading_contains: "软件环境"
+
+  - id: q_module_02
+    question: "怎么查看有哪些module可以加载？"
+    expected_hits:
+      - file: "107_platform_guide.md"
+        heading_contains: "软件环境"
+      - file: "slurm_command_reference.md"
+        heading_contains: "scontrol"
+
+  # ═══════════════════════════════════════════════════════════════
+  # GPU相关（sbatch_scripting_guide + 107_platform_guide）
+  # ═══════════════════════════════════════════════════════════════
+  - id: q_gpu_01
+    question: "怎么确认我的作业分配到GPU了？"
+    expected_hits:
+      - file: "sbatch_scripting_guide.md"
+        heading_contains: "GPU相关注意事项"
+      - file: "107_platform_guide.md"
+        heading_contains: "查看集群状态"
+
+  - id: q_gpu_02
+    question: "nvidia-smi在登录节点能用吗？"
+    expected_hits:
+      - file: "sbatch_scripting_guide.md"
+        heading_contains: "GPU相关注意事项"
+      - file: "107_platform_guide.md"
+        heading_contains: "平台限制与注意事项"
+
+  - id: q_gpu_03
+    question: "怎么指定用RTX 5090还是A100？"
+    expected_hits:
+      - file: "sbatch_scripting_guide.md"
+        heading_contains: "GPU相关注意事项"
+      - file: "slurm_command_reference.md"
+        heading_contains: "SBATCH 参数详解"
+
+  - id: q_gpu_04
+    question: "为什么我装的PyTorch没有CUDA支持？"
+    expected_hits:
+      - file: "scow_platform_guide.md"
+        heading_contains: "环境配置"
+      - file: "sbatch_scripting_guide.md"
+        heading_contains: "GPU相关注意事项"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 脚本编写规范（sbatch_scripting_guide）
+  # ═══════════════════════════════════════════════════════════════
+  - id: q_script_sete
+    question: "set -euo pipefail是什么意思？要不要加？"
+    expected_hits:
+      - file: "sbatch_scripting_guide.md"
+        heading_contains: "set -euo pipefail"
+
+  - id: q_script_time
+    question: "sbatch的时间格式怎么写？--time=2days对吗？"
+    expected_hits:
+      - file: "sbatch_scripting_guide.md"
+        heading_contains: "时间格式"
+      - file: "error_format_handbook.md"
+        heading_contains: "INVALID_TIME"
+
+  - id: q_script_output
+    question: "日志文件应该写到哪个目录？/tmp可以吗？"
+    expected_hits:
+      - file: "sbatch_scripting_guide.md"
+        heading_contains: "输出文件路径"
+      - file: "107_platform_guide.md"
+        heading_contains: "存储与数据"
+
+  - id: q_script_log_missing
+    question: "为什么我的作业没有生成日志文件？"
+    expected_hits:
+      - file: "sbatch_scripting_guide.md"
+        heading_contains: "输出文件路径"
+      - file: "scow_platform_guide.md"
+        heading_contains: "常见问题"
+
+  - id: q_script_data
+    question: "项目目录结构怎么组织比较好？"
+    expected_hits:
+      - file: "sbatch_scripting_guide.md"
+        heading_contains: "数据与文件管理"
+      - file: "scow_platform_guide.md"
+        heading_contains: "快速入门流程"
+
+  - id: q_script_mistakes
+    question: "写sbatch脚本有哪些常见的坑？"
+    expected_hits:
+      - file: "sbatch_scripting_guide.md"
+        heading_contains: "常见错误与预防"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 平台基础（107_platform_guide + scow_platform_guide）
+  # ═══════════════════════════════════════════════════════════════
+  - id: q_basic_01
+    question: "107平台的登录节点地址是什么？"
+    expected_hits:
+      - file: "107_platform_guide.md"
+        heading_contains: "平台概览"
+      - file: "scow_platform_guide.md"
+        heading_contains: "平台状态快照"
+
+  - id: q_basic_02
+    question: "107平台有多少个计算节点？什么配置？"
+    expected_hits:
+      - file: "107_platform_guide.md"
+        heading_contains: "平台概览"
+
+  - id: q_basic_03
+    question: "数据应该放在/public还是/tmp？"
+    expected_hits:
+      - file: "107_platform_guide.md"
+        heading_contains: "存储与数据"
+      - file: "sbatch_scripting_guide.md"
+        heading_contains: "输出文件路径"
+
+  - id: q_basic_04
+    question: "用户有sudo权限吗？"
+    expected_hits:
+      - file: "107_platform_guide.md"
+        heading_contains: "平台限制与注意事项"
+      - file: "107_platform_guide.md"
+        heading_contains: "软件环境"
+
+  - id: q_basic_05
+    question: "怎么访问SCOW Web界面？"
+    expected_hits:
+      - file: "107_platform_guide.md"
+        heading_contains: "SCOW Web平台功能"
+      - file: "scow_platform_guide.md"
+        heading_contains: "访问方式与入口"
+
+  - id: q_basic_06
+    question: "REST API怎么认证？"
+    expected_hits:
+      - file: "107_platform_guide.md"
+        heading_contains: "REST API使用"
+
+  # ═══════════════════════════════════════════════════════════════
+  # Slurm命令（slurm_command_reference）
+  # ═══════════════════════════════════════════════════════════════
+  - id: q_cmd_sinfo
+    question: "怎么查看集群的节点状态？"
+    expected_hits:
+      - file: "slurm_command_reference.md"
+        heading_contains: "sinfo"
+      - file: "107_platform_guide.md"
+        heading_contains: "查看集群状态"
+
+  - id: q_cmd_squeue
+    question: "怎么查看我的作业在排队？"
+    expected_hits:
+      - file: "slurm_command_reference.md"
+        heading_contains: "squeue"
+
+  - id: q_cmd_squeue_reason
+    question: "squeue的Reason列各种含义是什么？"
+    expected_hits:
+      - file: "slurm_command_reference.md"
+        heading_contains: "squeue"
+
+  - id: q_cmd_scontrol
+    question: "scontrol show job看哪些字段？"
+    expected_hits:
+      - file: "slurm_command_reference.md"
+        heading_contains: "scontrol"
+
+  - id: q_cmd_scancel
+    question: "怎么取消我的所有排队作业？"
+    expected_hits:
+      - file: "slurm_command_reference.md"
+        heading_contains: "scancel"
+
+  - id: q_cmd_sacct
+    question: "sacct在107平台能用吗？"
+    expected_hits:
+      - file: "slurm_command_reference.md"
+        heading_contains: "sacct"
+      - file: "107_platform_guide.md"
+        heading_contains: "平台限制与注意事项"
+
+  - id: q_cmd_env
+    question: "SLURM_JOB_ID这些环境变量在哪有效？"
+    expected_hits:
+      - file: "slurm_command_reference.md"
+        heading_contains: "Slurm 环境变量"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 排查流程（slurm_command_reference + scow_platform_guide）
+  # ═══════════════════════════════════════════════════════════════
+  - id: q_debug_01
+    question: "作业失败了，我应该按什么顺序排查？"
+    expected_hits:
+      - file: "slurm_command_reference.md"
+        heading_contains: "排查流程决策树"
+      - file: "scow_platform_guide.md"
+        heading_contains: "作业状态与排查"
+
+  - id: q_debug_02
+    question: "作业一直PENDING是什么原因？"
+    expected_hits:
+      - file: "slurm_command_reference.md"
+        heading_contains: "squeue"
+      - file: "107_platform_guide.md"
+        heading_contains: "常见问题与排查"
+
+  - id: q_debug_03
+    question: "怎么查看作业为什么排队？"
+    expected_hits:
+      - file: "slurm_command_reference.md"
+        heading_contains: "scontrol"
+      - file: "slurm_command_reference.md"
+        heading_contains: "squeue"
+
+  - id: q_debug_04
+    question: "作业状态PD/R/F/CA分别是什么意思？"
+    expected_hits:
+      - file: "slurm_command_reference.md"
+        heading_contains: "squeue"
+      - file: "scow_platform_guide.md"
+        heading_contains: "作业状态与排查"
+
+  # ═══════════════════════════════════════════════════════════════
+  # FAQ与常见问题（scow_platform_guide）
+  # ═══════════════════════════════════════════════════════════════
+  - id: q_faq_01
+    question: "关闭浏览器作业会停吗？"
+    expected_hits:
+      - file: "scow_platform_guide.md"
+        heading_contains: "常见问题"
+      - file: "scow_platform_guide.md"
+        heading_contains: "平台定位与架构"
+
+  - id: q_faq_02
+    question: "更多CPU worker会更快吗？"
+    expected_hits:
+      - file: "scow_platform_guide.md"
+        heading_contains: "常见问题"
+
+  - id: q_faq_03
+    question: "GitHub下载不了怎么办？"
+    expected_hits:
+      - file: "scow_platform_guide.md"
+        heading_contains: "常见问题"
+      - file: "scow_platform_guide.md"
+        heading_contains: "文件管理"
+
+  - id: q_faq_04
+    question: "怎么向平台求助？需要提供什么信息？"
+    expected_hits:
+      - file: "scow_platform_guide.md"
+        heading_contains: "常见问题"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 交互式计算（scow_platform_guide + slurm_command_reference）
+  # ═══════════════════════════════════════════════════════════════
+  - id: q_interactive_01
+    question: "怎么交互式登录到计算节点调试？"
+    expected_hits:
+      - file: "scow_platform_guide.md"
+        heading_contains: "交互式计算"
+      - file: "slurm_command_reference.md"
+        heading_contains: "srun"
+
+  - id: q_interactive_02
+    question: "srun和sbatch有什么区别？"
+    expected_hits:
+      - file: "scow_platform_guide.md"
+        heading_contains: "交互式计算"
+      - file: "scow_platform_guide.md"
+        heading_contains: "作业提交"
+      - file: "slurm_command_reference.md"
+        heading_contains: "srun"
+      - file: "slurm_command_reference.md"
+        heading_contains: "sbatch"
+      - file: "107_platform_guide.md"
+        heading_contains: "作业提交"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 监控与工具（107_platform_guide）
+  # ═══════════════════════════════════════════════════════════════
+  - id: q_monitor_01
+    question: "怎么查看集群的Grafana监控面板？"
+    expected_hits:
+      - file: "107_platform_guide.md"
+        heading_contains: "监控系统"
+      - file: "107_platform_guide.md"
+        heading_contains: "关键链接汇总"
+
+  - id: q_monitor_02
+    question: "tmux怎么用？SSH断了怎么办？"
+    expected_hits:
+      - file: "107_platform_guide.md"
+        heading_contains: "实用工具"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 领域场景与高级用法
+  # ═══════════════════════════════════════════════════════════════
+  - id: q_domain_01
+    question: "怎么用apptainer容器运行自己的软件？"
+    expected_hits:
+      - file: "107_platform_guide.md"
+        heading_contains: "Apptainer容器"
+
+  - id: q_domain_02
+    question: "深度学习训练的完整流程是什么？"
+    expected_hits:
+      - file: "scow_platform_guide.md"
+        heading_contains: "学科场景指南"
+      - file: "sbatch_scripting_guide.md"
+        heading_contains: "完整模板集合"
+
+  - id: q_domain_03
+    question: "数学统计模拟怎么提交批量作业？"
+    expected_hits:
+      - file: "scow_platform_guide.md"
+        heading_contains: "学科场景指南"
+
+  - id: q_domain_04
+    question: "物理化学模拟有什么注意事项？"
+    expected_hits:
+      - file: "scow_platform_guide.md"
+        heading_contains: "学科场景指南"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 错误格式匹配注意事项（error_format_handbook）
+  # ═══════════════════════════════════════════════════════════════
+  - id: q_errformat_01
+    question: "107平台的报错格式和Slurm文档不一样怎么办？"
+    expected_hits:
+      - file: "error_format_handbook.md"
+        heading_contains: "错误格式匹配注意事项"
+
+  - id: q_errformat_02
+    question: "TIMEOUT信息写在哪里？.out文件里有吗？"
+    expected_hits:
+      - file: "error_format_handbook.md"
+        heading_contains: "错误格式匹配注意事项"
+      - file: "error_format_handbook.md"
+        heading_contains: "TIMEOUT"
+
+  - id: q_errformat_03
+    question: "脚本没有set -e会怎样？"
+    expected_hits:
+      - file: "error_format_handbook.md"
+        heading_contains: "错误格式匹配注意事项"
+      - file: "sbatch_scripting_guide.md"
+        heading_contains: "set -euo pipefail"

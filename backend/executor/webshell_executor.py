@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 import ssl
 from typing import AsyncGenerator
 from urllib.parse import urlencode
@@ -22,6 +23,25 @@ from urllib.parse import urlencode
 import websockets
 
 from .base import BaseExecutor
+
+
+_CSI_ESCAPE_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
+_OSC_ESCAPE_RE = re.compile(r"\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)")
+
+
+def _plain_command_output(value: str) -> str:
+    """把终端协议输出转换成适合普通文本界面展示的内容。"""
+    cleaned = _OSC_ESCAPE_RE.sub("", value or "")
+    cleaned = _CSI_ESCAPE_RE.sub("", cleaned).replace("\r", "")
+    lines = []
+    for line in cleaned.splitlines():
+        stripped = line.strip()
+        # SCOW 会把 shell 提示符一并返回；它不属于命令结果。
+        if "@" in stripped and (stripped.endswith("$") or stripped.endswith(">")):
+            continue
+        if stripped:
+            lines.append(line.rstrip())
+    return "\n".join(lines).strip()
 
 
 class WebShellExecutor(BaseExecutor):
@@ -57,6 +77,9 @@ class WebShellExecutor(BaseExecutor):
         # 用于命令输出同步
         self._output_queue: asyncio.Queue[str | None] = asyncio.Queue()
         self._recv_task: asyncio.Task | None = None
+        # 一个 SCOW shell 同一时刻只能可靠执行一条命令。模板工作流和后台
+        # 作业监控会共享连接，用锁防止两边争抢同一个输出队列。
+        self._command_lock = asyncio.Lock()
 
     def _build_ws_url(self) -> str:
         """构建 WebSocket 连接 URL。"""
@@ -204,6 +227,12 @@ class WebShellExecutor(BaseExecutor):
         return False
 
     async def execute_stream(self, command: str) -> AsyncGenerator[str, None]:
+        """串行执行命令，避免多个协程交叉消费远程输出。"""
+        async with self._command_lock:
+            async for chunk in self._execute_stream_unlocked(command):
+                yield chunk
+
+    async def _execute_stream_unlocked(self, command: str) -> AsyncGenerator[str, None]:
         """通过 Web Shell 执行命令，流式返回输出。
 
         原理：发送命令 + 换行符，然后持续读取输出，
@@ -291,6 +320,10 @@ class WebShellExecutor(BaseExecutor):
 
     def _looks_like_prompt(self, text: str) -> bool:
         """检测输出末尾是否是 shell 提示符。"""
+        # 彩色 shell 会在提示符周围插入 ANSI 转义序列；不清理会导致实际
+        # 已回到 `$` 提示符却继续等到空闲超时。
+        text = _OSC_ESCAPE_RE.sub("", text)
+        text = _CSI_ESCAPE_RE.sub("", text)
         # 取最后几行
         lines = text.rstrip().split("\n")
         if not lines:
@@ -386,6 +419,18 @@ class WebShellExecutor(BaseExecutor):
         """通过 scancel 取消作业。"""
         async for _ in self.execute_stream(f"scancel {job_id}"):
             pass
+
+    async def execute_agent_command(self, command: str) -> str:
+        """Agent 专用：执行命令并收集全部输出为单个字符串。
+
+        复用已有的 WebShell 连接。因为 agent 执行时用户通常在观看
+        对话面板而非同时键入终端，实际冲突概率极低。
+        """
+        output = ""
+        async for chunk in self.execute_stream(command):
+            output += chunk
+        output = _plain_command_output(output)
+        return output if output else "(命令执行成功，无输出)"
 
     async def close(self) -> None:
         """关闭 WebSocket 连接。"""

@@ -1,0 +1,799 @@
+{
+  "dim": 4096,
+  "num_chunks": 132,
+  "corpus_fingerprint": "65faf3ddc028539e643ff2e728523101ea30414bbd9e939e4cda442ac85e82ba",
+  "chunks": [
+    {
+      "id": "107_platform_guide.md#平台概览",
+      "text": "中国科大超算中心107平台是一个17节点GPU集群，面向\"一〇七杯\"参赛队伍开放。平台包含两类计算节点：anode[01-15]配备双路Xeon 6530 CPU + 8块RTX 5090 GPU + 512GB内存，节点间以InfiniBand NDR 200Gbps互联；anode[16-17]配备双路Xeon 8358P CPU + 8块A100 80G GPU + 1TB内存，以InfiniBand HDR 100Gbps互联。共享存储采用曙光ParaStor（983TB），挂载在/public（等同于/home），各节点另有独立/tmp空间。操作系统为Ubuntu 24.04 LTS，调度器为Slurm 25.11，Web管理平台为SCOW（OpenSCOW）。管理节点tradmin-01运行slurmctld，登录节点tradmin-02（内网11.11.10.202）供用户交互。外网入口为107.ustc.edu.cn。\n\n---",
+      "source_file": "107_platform_guide.md",
+      "heading": "平台概览"
+    },
+    {
+      "id": "107_platform_guide.md#访问方式",
+      "text": "平台提供三种访问方式。第一，SSH命令行：ssh <用户名>@107.ustc.edu.cn，需提前申请开通SSH公钥认证，并配置Google Authenticator二次验证（2FA），客户端须支持Keyboard Interactive认证模式。第二，SCOW Web门户：https://107.ustc.edu.cn，通过统一身份认证登录，提供作业提交/管理、文件管理、WebShell终端、在线VSCode等功能。第三，Slurm REST API：http://107.ustc.edu.cn:6820，使用JWT Token认证（通过scontrol token lifespan=86400生成，默认1天有效期），请求头携带Authorization: Bearer <token>，支持JSON格式，遵循OpenAPI v3规范，常用端点包括/slurm/v0.0.41/jobs和/slurm/v0.0.41/nodes。\n\n---",
+      "source_file": "107_platform_guide.md",
+      "heading": "访问方式"
+    },
+    {
+      "id": "107_platform_guide.md#分区与QoS",
+      "text": "平台共有7个分区。CPU-6530为默认分区，覆盖anode[01-15]，1920 CPU核，无GPU。CPU-8358P覆盖anode[16-17]，256 CPU核，无GPU，大内存节点。GPU-RTX5090覆盖anode[01-15]，120块RTX 5090。GPU-A100覆盖anode[16-17]，16块A100。P107-RTX5090为比赛专用GPU分区，覆盖anode[01-15]，1920 CPU核 + 120块RTX 5090。P107-A100为比赛专用高精度分区，覆盖anode[16-17]，256 CPU核 + 16块A100 80G。Students为学生统一认证分区，覆盖anode[05-17]。\n\nQoS（Quality of Service）控制资源配额。比赛分区QoS限制如下：qos_p107-rtx5090允许最多4个作业同时运行，GrpTRES限制为cpu=16, gpu=4，运行时长不限；qos_p107-a100允许最多4个作业，GrpTRES限制为cpu=16, gpu=2，时长不限。查看分区允许QoS：scontrol show partition <分区名> | grep AllowQos。查看自己可用QoS：sacctmgr show assoc user=$USER format=User,Partition,QOS。查看全局QoS：sacctmgr list qos -p。\n\n---",
+      "source_file": "107_platform_guide.md",
+      "heading": "分区与QoS"
+    },
+    {
+      "id": "107_platform_guide.md#作业提交（sbatch）",
+      "text": "提交批处理作业使用sbatch命令。典型作业脚本格式：\n\n```bash\n#!/bin/bash\n#SBATCH -J my_job                    # 作业名称\n#SBATCH -p P107-RTX5090              # 分区\n#SBATCH -N 1                         # 节点数\n#SBATCH --gres=gpu:2                 # GPU数量\n#SBATCH -n 4                         # 总MPI进程数\n#SBATCH --cpus-per-task=8            # 每任务CPU核数\n#SBATCH --time=02:00:00              # 超时时间\n#SBATCH --output=%j.out              # 标准输出（%j=JobID）\n#SBATCH --error=%j.err               # 错误输出\n\npython train.py --epochs 100\n```\n\n提交命令：sbatch job.sh。命令行参数优先级高于脚本内#SBATCH参数，例如sbatch -p CPU-6530 job.sh会覆盖脚本中的分区设置。\n\n常用SBATCH参数速查：-J/--job-name作业名称，-p/--partition分区，-N/--nodes节点数，--gres=gpu:N GPU数量，-n/--ntasks总进程数，-c/--cpus-per-task每任务CPU，--time超时，-o/--output标准输出，-e/--error错误输出，--mem内存上限，--qos指定QoS，--array数组作业。\n\n---",
+      "source_file": "107_platform_guide.md",
+      "heading": "作业提交（sbatch）"
+    },
+    {
+      "id": "107_platform_guide.md#作业状态与查询",
+      "text": "作业生命周期状态包括：PENDING（排队等待资源）、RUNNING（正在执行）、COMPLETED（正常结束）、FAILED（执行出错）、TIMEOUT（超时终止）、CANCELLED（被用户取消）。\n\nsqueue查看作业队列：squeue显示所有作业，squeue -u $USER查看自己的作业，squeue -p P107-RTX5090查看指定分区。输出字段：JOBID作业编号、分区、名称、ST状态码（R=运行/PD=排队/CG=退出中/S=挂起）、时间、原因/节点。排队原因：(Resources)资源不足、(Priority)优先级不足、(Dependency)依赖未完成、(AssocGrp...)达到QoS上限。\n\nscontrol show job <JobID>查看作业详情：显示JobState、Partition、RunTime、TimeLimit、NodeList、NumCPUs、ReqTRES（请求资源）、AllocTRES（实际分配）、QOS、Command等。排查技巧：PENDING作业看Reason，FAILED看ExitCode，对比ReqTRES与AllocTRES。\n\nsacct查看作业历史：sacct -u $USER -X --format=JobID,JobName,Elapsed,State。注意：sacct在本平台可能不可用或功能受限。\n\n---",
+      "source_file": "107_platform_guide.md",
+      "heading": "作业状态与查询"
+    },
+    {
+      "id": "107_platform_guide.md#作业管理命令",
+      "text": "scancel取消作业：scancel <JobID>取消单个，scancel -u $USER -t PENDING取消自己所有排队作业，scancel -p P107-RTX5090取消某分区所有作业。只能取消自己的作业。\n\nsrun交互式运行：srun -p P107-RTX5090 --gres=gpu:1 --time=01:00:00 python train.py，适用于调试和短任务。\n\n挂起/恢复：scontrol hold <JobID>挂起排队中作业，scontrol release释放，scontrol suspend暂停运行中作业，scontrol resume继续。scontrol requeue让作业重新排队（适用于被抢占或资源不足失败的作业）。\n\n---",
+      "source_file": "107_platform_guide.md",
+      "heading": "作业管理命令"
+    },
+    {
+      "id": "107_platform_guide.md#查看集群状态",
+      "text": "sinfo查看分区与节点状态：sinfo显示所有分区，sinfo -N -p <分区>按节点查看，sinfo -s紧凑概览，sinfo --noheader跳过表头。状态码：idle=空闲、mix=部分占用、alloc=全满、down*=宕机。同一分区可有多行（每行一种状态），总节点数=各状态行节点数之和。\n\n登录节点查看实时状态：htop查看CPU/内存占用，nvidia-smi查看GPU状态（注意登录节点无GPU），scontrol show nodes查看节点分配，scontrol show jobs查看所有作业概览。\n\nGPU分配查看：squeue --format=\"%i %P %j %b %M\"。\n\n---",
+      "source_file": "107_platform_guide.md",
+      "heading": "查看集群状态"
+    },
+    {
+      "id": "107_platform_guide.md#Slurm环境变量",
+      "text": "以下变量仅在sbatch提交的作业脚本内有效（登录节点Shell中无定义）：$SLURM_JOB_ID作业编号，$SLURM_JOB_NAME作业名称，$SLURM_SUBMIT_DIR提交目录，$SLURM_JOB_NODELIST分配节点列表，$SLURM_NTASKS总任务数，$SLURM_CPUS_PER_TASK每任务CPU，$SLURM_GPUS分配GPU数，$SLURM_GPUS_PER_NODE每节点GPU数，$SLURM_NPROCS分配CPU核数，$SLURM_MEM_PER_NODE每节点内存，$SLURM_PARTITION当前分区名，$SLURM_ARRAY_TASK_ID数组作业任务编号。\n\n展开节点列表：scontrol show hostnames $SLURM_JOB_NODELIST。\n\n---",
+      "source_file": "107_platform_guide.md",
+      "heading": "Slurm环境变量"
+    },
+    {
+      "id": "107_platform_guide.md#软件环境",
+      "text": "平台预装Python 3.12（路径/public/app/python3.12/3.12），已包含numpy、torch、tensorflow、pandas、scikit-learn等20+常用包。模块系统使用Lmod，可用模块包括：cuda/12.6、cuda/13.0、python3.12/3.12、miniconda/py312、apptainer/1.4.5、go/1.24.5/1.25.6、vscode/4.21.1/4.118.0，以及Intel oneAPI系列（mkl、mpi、compiler、dnnl、ccl、tbb）。\n\n使用module avail查看可用模块，module load <名称>加载。推荐使用Conda管理个人Python环境（miniconda/py312模块）。用户无sudo权限，不可自行安装系统级软件，如有需要须联系管理员。",
+      "source_file": "107_platform_guide.md",
+      "heading": "软件环境"
+    },
+    {
+      "id": "107_platform_guide.md#Apptainer容器",
+      "text": "平台提供`apptainer/1.4.5`模块。已有`.sif`镜像时，可以在登录节点准备命令，再通过Slurm在计算节点运行：\n\n```bash\nmodule load apptainer/1.4.5\napptainer --version\napptainer exec ~/images/my_app.sif <程序命令>\n```\n\n需要进入镜像调试时可使用`apptainer shell ~/images/my_app.sif`。容器默认可以访问提交目录和用户主目录，仍应把重要结果写入共享存储。\n\n当前平台访问Docker Hub可能受到DNS或外网策略限制，`apptainer pull docker://...`不保证成功。遇到`lookup registry-1.docker.io`等错误时，不要反复重试；应在可联网环境准备好`.sif`镜像后上传，或联系管理员提供镜像。容器不能绕过Slurm资源申请，也不能获得sudo权限。\n\n---",
+      "source_file": "107_platform_guide.md",
+      "heading": "Apptainer容器"
+    },
+    {
+      "id": "107_platform_guide.md#存储与数据",
+      "text": "共享存储/public（等同于/home）基于曙光ParaStor，所有节点可访问，用于存放代码、数据、输出。/tmp为各节点本地临时空间，用完即清，节点重启后清空。作业输出建议写入/public目录，避免使用/tmp存放重要结果。磁盘配额有限，使用过多会触发\"Disk quota exceeded\"错误。\n\n---",
+      "source_file": "107_platform_guide.md",
+      "heading": "存储与数据"
+    },
+    {
+      "id": "107_platform_guide.md#典型作业模板 > 单GPU训练作业",
+      "text": "```bash\n#!/bin/bash\n#SBATCH -J pytorch_train\n#SBATCH -p P107-RTX5090\n#SBATCH -N 1\n#SBATCH --gres=gpu:1\n#SBATCH -n 8\n#SBATCH --time=04:00:00\n#SBATCH --output=%j-pytorch.out\n#SBATCH --error=%j-pytorch.err\n\nsource /public/home/$USER/miniconda3/etc/profile.d/conda.sh\nconda activate myenv\n\npython train.py --epochs 200 --batch-size 128 --lr 0.001\n```",
+      "source_file": "107_platform_guide.md",
+      "heading": "典型作业模板 > 单GPU训练作业"
+    },
+    {
+      "id": "107_platform_guide.md#典型作业模板 > 多GPU分布式训练",
+      "text": "```bash\n#!/bin/bash\n#SBATCH -J distributed_train\n#SBATCH -p P107-RTX5090\n#SBATCH -N 2\n#SBATCH --gres=gpu:4\n#SBATCH -n 16\n#SBATCH --time=12:00:00\n#SBATCH --output=%j-dist.out\n\nexport MASTER_ADDR=$(hostname)\nexport MASTER_PORT=29500\nexport NCCL_DEBUG=INFO\n\ntorchrun --nnodes=$SLURM_JOB_NUM_NODES \\\n         --nproc_per_node=4 \\\n         --rdzv_id=$SLURM_JOB_ID \\\n         --rdzv_backend=c10d \\\n         --rdzv_endpoint=$MASTER_ADDR:$MASTER_PORT \\\n         train.py --epochs 500\n```\n\n注意：QoS限制每作业最多gpu=4（RTX5090）或gpu=2（A100），多GPU申请需确认不超限。",
+      "source_file": "107_platform_guide.md",
+      "heading": "典型作业模板 > 多GPU分布式训练"
+    },
+    {
+      "id": "107_platform_guide.md#典型作业模板 > 数组作业",
+      "text": "```bash\n#!/bin/bash\n#SBATCH -J array_hp\n#SBATCH -p P107-RTX5090\n#SBATCH --gres=gpu:1\n#SBATCH -n 4\n#SBATCH --time=02:00:00\n#SBATCH --array=1-10\n\ncase $SLURM_ARRAY_TASK_ID in\n  1) LR=0.1;;\n  2) LR=0.05;;\n  3) LR=0.01;;\n  4) LR=0.005;;\n  *) LR=0.001;;\nesac\n\npython train.py --lr $LR --epochs 100\n```\n\n---",
+      "source_file": "107_platform_guide.md",
+      "heading": "典型作业模板 > 数组作业"
+    },
+    {
+      "id": "107_platform_guide.md#SCOW Web平台功能",
+      "text": "SCOW（Super Computing Online Workbench）是超算作业管理Web系统，地址https://107.ustc.edu.cn。功能包括：作业提交与管理（选择分区、填入脚本、提交/取消）、查看作业状态和标准输出/错误、WebShell浏览器内终端（可执行Slurm命令）、文件管理（上传下载）、在线VSCode编辑器（内置登录节点终端）。认证方式为统一身份认证/LDAP认证，Cookie名SCOW_USER（ustc-uuid格式，约24小时过期）。\n\n---",
+      "source_file": "107_platform_guide.md",
+      "heading": "SCOW Web平台功能"
+    },
+    {
+      "id": "107_platform_guide.md#监控系统",
+      "text": "平台部署了Prometheus + Grafana监控体系。Grafana仪表盘地址http://107.ustc.edu.cn:3000（用户名/密码aiviewer），HPC监控概览http://114.214.255.131/hpc/（校内访问）。监控指标包括：节点CPU使用率/内存/显存/网络/磁盘IO、作业调度（排队数/运行数/集群负载）、GPU状态（显存/利用率/温度/ECC错误）、IB网络吞吐量。架构为：各节点部署node_exporter，登录节点部署slurm_exporter和GPU_exporter，Prometheus定时拉取数据，Grafana可视化展示。\n\n---",
+      "source_file": "107_platform_guide.md",
+      "heading": "监控系统"
+    },
+    {
+      "id": "107_platform_guide.md#实用工具",
+      "text": "tmux终端会话管理：tmux new -s work创建会话，tmux attach -t work重连，Ctrl+b d断开（任务继续运行），tmux ls列出所有会话。SSH掉线后重新连接tmux attach即可恢复，适合长时间提交作业场景。\n\nVIM编辑器基础：vim file.sh打开，i进入插入模式，Esc退出到普通模式，:wq保存退出，:q!强制退出，/关键词搜索，:%s/旧/新/g全局替换。\n\n系统邮件：mail命令查看本地邮件（作业完成通知等）。注意#SBATCH --mail-type依赖本地sendmail，本平台未配置外部中继，不会生效。如需外部通知建议在脚本中调用Webhook/API。\n\nGit版本控制：学校代码托管https://git.ustc.edu.cn。\n\n---",
+      "source_file": "107_platform_guide.md",
+      "heading": "实用工具"
+    },
+    {
+      "id": "107_platform_guide.md#常见问题与排查 > SSH无法连接",
+      "text": "确认已提交SSH公钥申请。已开通用户需客户端支持Keyboard Interactive认证。",
+      "source_file": "107_platform_guide.md",
+      "heading": "常见问题与排查 > SSH无法连接"
+    },
+    {
+      "id": "107_platform_guide.md#常见问题与排查 > 作业一直PENDING",
+      "text": "用squeue -u $USER查看Reason列。常见原因：(Resources)资源不足等待、(Priority)优先级不足、(Dependency)依赖的作业未完成、(AssocGrp...)达到QoS作业数上限。",
+      "source_file": "107_platform_guide.md",
+      "heading": "常见问题与排查 > 作业一直PENDING"
+    },
+    {
+      "id": "107_platform_guide.md#常见问题与排查 > 作业运行失败",
+      "text": "首选查看作业脚本设定的日志文件slurm-<JobID>.out和slurm-<JobID>.err。辅助：scontrol show job <JobID>查看State/ExitCode。注意TIMEOUT信息不写入.out文件，在.err或squeue状态字段中。",
+      "source_file": "107_platform_guide.md",
+      "heading": "常见问题与排查 > 作业运行失败"
+    },
+    {
+      "id": "107_platform_guide.md#常见问题与排查 > 如何访问/public下的软件",
+      "text": "使用module avail查看可用模块，module load <软件名>加载。推荐用Conda管理个人Python环境。",
+      "source_file": "107_platform_guide.md",
+      "heading": "常见问题与排查 > 如何访问/public下的软件"
+    },
+    {
+      "id": "107_platform_guide.md#常见问题与排查 > 查看GPU使用情况",
+      "text": "squeue --format=\"%i %P %j %b %M\"查看GPU分配。登录节点无GPU，需在计算节点或通过squeue查看。",
+      "source_file": "107_platform_guide.md",
+      "heading": "常见问题与排查 > 查看GPU使用情况"
+    },
+    {
+      "id": "107_platform_guide.md#常见问题与排查 > 磁盘配额不足",
+      "text": "检查/public下文件大小，清理不必要的输出和临时文件。",
+      "source_file": "107_platform_guide.md",
+      "heading": "常见问题与排查 > 磁盘配额不足"
+    },
+    {
+      "id": "107_platform_guide.md#常见问题与排查 > 权限错误",
+      "text": "用户无sudo权限。如遇到Permission denied，检查输出路径是否在自己的目录下。计算节点/var/spool/slurmd/目录不可写。",
+      "source_file": "107_platform_guide.md",
+      "heading": "常见问题与排查 > 权限错误"
+    },
+    {
+      "id": "107_platform_guide.md#常见问题与排查 > conda命令找不到",
+      "text": "需先加载miniconda模块：module load miniconda/py312，然后source /public/home/$USER/miniconda3/etc/profile.d/conda.sh。脚本中如未加载模块直接调用conda会报\"conda: command not found\"。",
+      "source_file": "107_platform_guide.md",
+      "heading": "常见问题与排查 > conda命令找不到"
+    },
+    {
+      "id": "107_platform_guide.md#常见问题与排查 > module加载失败",
+      "text": "实际报错格式为\"ERROR: Unable to locate a modulefile for '<名称>'\"，检查模块名和版本是否正确（module avail查看）。\n\n---",
+      "source_file": "107_platform_guide.md",
+      "heading": "常见问题与排查 > module加载失败"
+    },
+    {
+      "id": "107_platform_guide.md#平台限制与注意事项",
+      "text": "1. 无sudo权限，不可安装系统级软件\n2. sacct在本平台功能可能受限，不可完全依赖\n3. 登录节点无GPU，nvidia-smi在登录节点无法使用\n4. 脚本中如无set -e，错误后命令会继续执行（不会自动停止）\n5. 命令行参数优先级高于脚本内#SBATCH参数\n6. Token（JWT）默认1天有效期，过期需重新生成\n7. 数据放/public共享目录，/tmp各节点独立且用完即清\n8. 比赛指定分区为P107-RTX5090和P107-A100\n9. QoS限制：RTX5090最多4 GPU/作业，A100最多2 GPU/作业\n10. SSH需要公钥认证 + Google Authenticator二次验证\n\n---",
+      "source_file": "107_platform_guide.md",
+      "heading": "平台限制与注意事项"
+    },
+    {
+      "id": "107_platform_guide.md#REST API使用",
+      "text": "生成Token：scontrol token lifespan=86400，输出SLURM_JWT=eyJhbG...，取=后面部分。\n\nPython代码示例：\n```python\nimport requests, os\nBASE = \"http://107.ustc.edu.cn:6820\"\nTOKEN = os.environ.get(\"SLURM_JWT\")\nHEADERS = {\"Authorization\": f\"Bearer {TOKEN}\", \"Content-Type\": \"application/json\"}\n\n# 查询作业\nr = requests.get(f\"{BASE}/slurm/v0.0.41/jobs\", headers=HEADERS)\n\n# 查询指定分区\nr = requests.get(f\"{BASE}/slurm/v0.0.41/jobs?partition=P107-RTX5090\", headers=HEADERS)\n\n# 提交作业\npayload = {\"script\": script_content, \"job\": {\"partition\": \"P107-RTX5090\", \"name\": \"api-job\", \"nodes\": 1, \"time\": 60}}\nr = requests.post(f\"{BASE}/slurm/v0.0.41/jobs/submit\", json=payload, headers=HEADERS)\n\n# 取消作业\nr = requests.delete(f\"{BASE}/slurm/v0.0.41/job/{job_id}\", headers=HEADERS)\n```\n\n安全提醒：Token等于密码，不要明文写在脚本中或提交到Git，应使用环境变量。\n\n---",
+      "source_file": "107_platform_guide.md",
+      "heading": "REST API使用"
+    },
+    {
+      "id": "107_platform_guide.md#Slurm架构（背景知识）",
+      "text": "Slurm由一组守护进程协作：munge（通信认证）、mariadb（系统数据库）、slurmdbd（作业记账）、slurmctld（主控调度，运行在管理节点tradmin-01）、slurmd（计算节点代理）、slurmrestd（REST API网关）。启动顺序：munge → mariadb → slurmdbd → slurmctld → slurmd。本平台采用Configless模式，节点启动时从slurmctld自动拉取配置。对普通用户而言，只需知道通过srun/sbatch/squeue等命令与slurmctld交互，作业在计算节点执行。\n\n---",
+      "source_file": "107_platform_guide.md",
+      "heading": "Slurm架构（背景知识）"
+    },
+    {
+      "id": "107_platform_guide.md#关键链接汇总",
+      "text": "- SCOW门户：https://107.ustc.edu.cn\n- Grafana监控：https://107.ustc.edu.cn:3000（aiviewer/aiviewer）\n- HPC监控面板：http://114.214.255.131/hpc/（校内）\n- REST API：http://107.ustc.edu.cn:6820\n- USTC GitLab：https://git.ustc.edu.cn\n- Slurm官方文档：https://slurm.schedmd.com/documentation.html\n- 开源镜像：https://mirrors.ustc.edu.cn\n- 问题反馈：hmli@ustc.edu.cn",
+      "source_file": "107_platform_guide.md",
+      "heading": "关键链接汇总"
+    },
+    {
+      "id": "error_format_handbook.md#INVALID_QOS — 无效QOS",
+      "text": "触发场景：sbatch提交时指定的QOS名称错误或无权限。\n\n实际输出格式：\n```\nsbatch: error: Batch job submission failed: Invalid qos specification\n```\n\n带Hint的变体：\n```\nsbatch: error: Batch job submission failed: Invalid qos specification\nHint: QoS 'qos_p107' is not valid for partition P107-A100\n```\n\n带资源分配失败的变体：\n```\n$ sbatch train.sh\nsbatch: error: Batch job submission failed: Invalid qos specification\nsbatch: error: Unable to allocate resources\n```\n\n诊断要点：关键词\"Invalid qos specification\"。用户常犯错误是把分区名和QOS名搞混（如写qos_p107而不是qos_p107-rtx5090）。\n\n---",
+      "source_file": "error_format_handbook.md",
+      "heading": "INVALID_QOS — 无效QOS"
+    },
+    {
+      "id": "error_format_handbook.md#INVALID_PARTITION — 无效分区",
+      "text": "触发场景：指定的分区名拼写错误或不存在。\n\n真实平台输出（107.ustc.edu.cn 2026-08-27实测）：\n```\nsbatch: error: invalid partition specified: DO_NOT_EXIST\nsbatch: error: Batch job submission failed: Invalid partition name specified\n```\n\n旧版Slurm文档格式：\n```\nsbatch: error: Batch job submission failed: Invalid partition specification\n```\n\n带分区详情的变体：\n```\nsbatch: error: Batch job submission failed: Invalid partition specification\nsbatch: error: Partition 'P107-V100' not found\n```\n\n诊断要点：107平台实际输出是\"Invalid partition name specified\"而非文档中的\"Invalid partition specification\"，两种都要匹配。\n\n---",
+      "source_file": "error_format_handbook.md",
+      "heading": "INVALID_PARTITION — 无效分区"
+    },
+    {
+      "id": "error_format_handbook.md#WORKDIR_NOT_FOUND — 工作目录失效",
+      "text": "触发场景：提交作业时所在目录已被删除或移动。\n\n标准格式：\n```\nslurmstepd: error: chdir(/home/user/deleted_dir) failed: No such file or directory\nslurmstepd: error: _run_prolog: chdir failed\n```\n\ngetcwd失败：\n```\nslurmstepd: error: getcwd failed: No such file or directory\nslurmstepd: error: Unable to set working directory\n```\n\n无法打开工作目录：\n```\nslurmstepd: error: can't open /data/tmp/exp42 working directory\n```\n\n诊断要点：关键词\"chdir failed\"/\"getcwd failed\"/\"can't open.*working\"。用户需要cd $HOME后重新提交。\n\n---",
+      "source_file": "error_format_handbook.md",
+      "heading": "WORKDIR_NOT_FOUND — 工作目录失效"
+    },
+    {
+      "id": "error_format_handbook.md#ENTRYPOINT_NOT_FOUND — 入口文件不存在",
+      "text": "触发场景：作业脚本中指定的Python脚本或可执行文件不存在。\n\n真实平台输出（107.ustc.edu.cn 2026-08-27实测）：\n```\npython: can't open file '/home/scc/sa25232066/benchmark_test/nonexistent_script.py': [Errno 2] No such file or directory\n```\n\nPython FileNotFoundError：\n```\nTraceback (most recent call last):\n  File \"run.py\", line 5, in <module>\n    data = open(\"data/train.csv\")\nFileNotFoundError: [Errno 2] No such file or directory: 'data/train.csv'\n```\n\nbash找不到脚本：\n```\n/var/spool/slurm/job12345/slurm_script: line 12: ./train.sh: No such file or directory\n```\n\n诊断要点：关键词\"can't open file\"/\"No such file or directory\"/\"FileNotFoundError\"。注意区分是入口文件不存在还是数据文件不存在。\n\n---",
+      "source_file": "error_format_handbook.md",
+      "heading": "ENTRYPOINT_NOT_FOUND — 入口文件不存在"
+    },
+    {
+      "id": "error_format_handbook.md#MODULE_NOT_FOUND — 模块不存在",
+      "text": "触发场景：module load指定的软件模块名称或版本错误。\n\n真实平台输出（107.ustc.edu.cn 2026-08-27实测）：\n```\nERROR: Unable to locate a modulefile for 'cuda/99.99'\n```\n\nLmod格式变体：\n```\nLmod has detected the following error: The following module(s) are unknown: 'cuda/12.0'\n```\n\n带搜索提示：\n```\nLmod has detected the following error:\nUnable to find: \"tensorflow/2.15\".\nSearching modules...\n```\n\n诊断要点：107平台使用Lmod，实际格式是\"ERROR: Unable to locate a modulefile for\"。用户应用module avail查看可用模块。\n\n---",
+      "source_file": "error_format_handbook.md",
+      "heading": "MODULE_NOT_FOUND — 模块不存在"
+    },
+    {
+      "id": "error_format_handbook.md#TIMEOUT — 作业超时",
+      "text": "触发场景：作业运行时间超过--time限制被系统终止。\n\n标准Slurm超时取消：\n```\nslurmstepd: error: *** JOB 12345 ON gpu-node-01 CANCELLED AT 2026-07-29T10:30:00 DUE TO TIME LIMIT ***\n```\n\nsacct风格状态输出：\n```\nJobID    State      Reason\n-----    -----      ------\n12345    TIMEOUT    TimeLimit\n```\n\n作业输出中的超时标记：\n```\nEpoch 3/10: loss=0.543\nEpoch 4/10: loss=0.421\nslurmstepd: error: Detected job exceeded time limit, terminating\n```\n\n诊断要点：关键词\"DUE TO TIME LIMIT\"/\"CANCELLED AT.*TIME\"/\"exceeded time limit\"。注意：TIMEOUT信息不写入slurm-xxx.out文件，在.err或squeue状态字段中。\n\n---",
+      "source_file": "error_format_handbook.md",
+      "heading": "TIMEOUT — 作业超时"
+    },
+    {
+      "id": "error_format_handbook.md#OUT_OF_MEMORY — 内存超限",
+      "text": "触发场景：作业使用的内存超过--mem申请的上限。\n\nSlurm OOM killer：\n```\nslurmstepd: error: Detected 1 oom-kill event(s) in StepId=12345.batch cgroup\nSome of the step processes have been killed\n```\n\n内存限制超出：\n```\nslurmstepd: error: Exceeded job memory limit at some point\nslurmstepd: error: Job 12345 exceeded memory limit\n```\n\n被系统Killed（最简形式）：\n```\nTraining model...\nLoading dataset (12GB)...\nKilled\n```\n\n内核OOM日志：\n```\n[12345.678] oom-kill: invoked oom-killer: gfp_mask=0x6200ca(GFP_HIGHUSER_MOVABLE)\n[12345.679] Out of memory: Killed process 98765 (python) total-vm:32000000kB\n```\n\n诊断要点：关键词\"oom-kill\"/\"exceeded memory limit\"/\"Killed\"。裸\"Killed\"需结合上下文判断（也可能是其他信号）。\n\n---",
+      "source_file": "error_format_handbook.md",
+      "heading": "OUT_OF_MEMORY — 内存超限"
+    },
+    {
+      "id": "error_format_handbook.md#PROGRAM_EXIT_NONZERO — 程序非零退出",
+      "text": "触发场景：程序自身抛出异常或返回非零退出码。\n\n真实平台输出（107.ustc.edu.cn 2026-08-27实测）：\n```\nTesting runtime exception...\nTraceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nZeroDivisionError: division by zero\n```\n\nModuleNotFoundError：\n```\nTraceback (most recent call last):\n  File \"train.py\", line 1, in <module>\n    import torch\nModuleNotFoundError: No module named 'torch'\n```\n\nslurmstepd退出码报告：\n```\nslurmstepd: error: Detected job exit code 1\nJob completed with exit code 1\n```\n\nCUDA error导致非零退出：\n```\nRuntimeError: CUDA error: device-side assert triggered\nCUDA kernel errors might be asynchronously reported at some other API call\nexit code 1\n```\n\n诊断要点：关键词\"Traceback\"/\"exit code [1-9]\"/\"ModuleNotFoundError\"/\"ImportError\"。这是兜底规则，优先级应低于更具体的错误类型。\n\n---",
+      "source_file": "error_format_handbook.md",
+      "heading": "PROGRAM_EXIT_NONZERO — 程序非零退出"
+    },
+    {
+      "id": "error_format_handbook.md#DISK_QUOTA — 磁盘配额不足",
+      "text": "触发场景：写入文件时超出磁盘配额或磁盘空间满。\n\nPython OSError：\n```\nOSError: [Errno 122] Disk quota exceeded\nError writing checkpoint to /home/sa25232066/checkpoints/epoch5.pt\n```\n\n系统命令写入失败：\n```\ncp: error writing '/home/sa25232066/data/output.tar': No space left on device\ncp: failed to extend '/home/sa25232066/data/output.tar': No space left on device\n```\n\nconda安装时配额不足：\n```\nCollecting package metadata (current_repodata.json): done\nERROR conda.core.link:_execute(700): An error occurred while installing package 'pytorch-2.1.0'.\nOSError: [Errno 122] Disk quota exceeded\n```\n\n诊断要点：关键词\"Disk quota exceeded\"/\"No space left on device\"/\"Errno 122\"/\"Errno 28\"。\n\n---",
+      "source_file": "error_format_handbook.md",
+      "heading": "DISK_QUOTA — 磁盘配额不足"
+    },
+    {
+      "id": "error_format_handbook.md#PERMISSION_DENIED — 权限问题",
+      "text": "触发场景：写入无权限的目录或执行无权限的脚本。\n\n真实平台输出（107.ustc.edu.cn 2026-08-27实测）：\n```\nTesting permission denied...\n/var/spool/slurmd/job45841/slurm_script: line 9: /root/benchmark_should_fail.txt: Permission denied\n```\n\n脚本无执行权限：\n```\n/var/spool/slurm/job5678/slurm_script: line 8: ./run_experiment.sh: Permission denied\n```\n\nPython写文件权限错误：\n```\nTraceback (most recent call last):\n  File \"train.py\", line 88, in <module>\n    torch.save(model.state_dict(), \"/shared/models/best.pt\")\nPermissionError: [Errno 13] Permission denied: '/shared/models/best.pt'\n```\n\n诊断要点：关键词\"Permission denied\"/\"PermissionError\"/\"Errno 13\"。107平台用户无sudo权限，写/root或系统目录会触发此错误。\n\n---",
+      "source_file": "error_format_handbook.md",
+      "heading": "PERMISSION_DENIED — 权限问题"
+    },
+    {
+      "id": "error_format_handbook.md#GPU_OOM — GPU显存不足",
+      "text": "触发场景：深度学习训练时GPU显存不够。\n\nPyTorch CUDA OOM：\n```\ntorch.cuda.OutOfMemoryError: CUDA out of memory. Tried to allocate 2.00 GiB.\nGPU 0 has a total capacity of 39.56 GiB of which 1.23 GiB is free.\n```\n\nCUDA运行时错误：\n```\nRuntimeError: CUDA error: out of memory\nCUDA error: cudaErrorMemoryAllocation\n```\n\nTensorFlow GPU OOM：\n```\ntensorflow.python.framework.errors_impl.ResourceExhaustedError:\nOOM when allocating tensor with shape[32,512,512,3]\n[_Derived_]  All 1 GPUs are allocated but 2 requested.\n```\n\nCUDA malloc失败详情：\n```\nCUDA out of memory. Tried to allocate 4.00 GiB (GPU 0; 79.15 GiB total capacity;\n74.32 GiB already allocated; 2.11 GiB free)\n```\n\n诊断要点：关键词\"CUDA out of memory\"/\"OutOfMemoryError\"/\"cudaErrorMemoryAllocation\"/\"ResourceExhaustedError\"。建议减小batch size或模型大小。\n\n---",
+      "source_file": "error_format_handbook.md",
+      "heading": "GPU_OOM — GPU显存不足"
+    },
+    {
+      "id": "error_format_handbook.md#NODE_FAIL — 节点故障",
+      "text": "触发场景：计算节点硬件故障或意外重启。\n\nSlurm NODE_FAIL状态：\n```\nslurmstepd: error: Node failure on gpu-node-03\nJob state changed to NODE_FAIL\n```\n\n节点意外重启：\n```\nslurmstepd: error: Node gpu-node-01 unexpectedly rebooted\nslurmstepd: error: Job 23456 terminated due to node failure\n```\n\nbatch step failure：\n```\nslurmstepd: error: Detected batch step failure\nsrun: error: gpu-node-02: task 0: Terminated (Node failure)\n```\n\n诊断要点：关键词\"Node failure\"/\"unexpectedly rebooted\"/\"NODE_FAIL\"/\"Node.*terminated\"。用户无法修复，需重新提交或联系管理员。\n\n---",
+      "source_file": "error_format_handbook.md",
+      "heading": "NODE_FAIL — 节点故障"
+    },
+    {
+      "id": "error_format_handbook.md#PREEMPTED — 作业被抢占",
+      "text": "触发场景：高优先级作业抢占资源，低优先级作业被终止。\n\n高优先级抢占：\n```\nslurmstepd: error: Job 34567 preempted by higher priority job\nJob state: PREEMPTED\n```\n\nsqueue显示PREEMPTED：\n```\nJOBID PARTITION NAME USER STATE TIME NODES\n34567 Students train.py sa25232066 PREEMPTED 0:45:12 1\n```\n\n诊断要点：关键词\"PREEMPTED\"/\"preempted by higher priority\"。用户可用scontrol requeue重新排队。\n\n---",
+      "source_file": "error_format_handbook.md",
+      "heading": "PREEMPTED — 作业被抢占"
+    },
+    {
+      "id": "error_format_handbook.md#CONDA_ENV — Conda环境问题",
+      "text": "触发场景：作业脚本中未正确初始化conda或环境不存在。\n\n真实平台输出（107.ustc.edu.cn 2026-08-27实测）：\n```\nTesting conda without init...\n/var/spool/slurmd/job45844/slurm_script: line 9: conda: command not found\nPython 3.12.3\n```\n\nconda activate未配置：\n```\nCommandNotFoundError: Your shell has not been properly configured to use 'conda activate'.\nTo initialize your shell, run: $ conda init <SHELL_NAME>\n```\n\n环境不存在：\n```\nEnvironmentNameNotFound: Could not find conda environment: myenv\nValid environments: base\n```\n\n诊断要点：关键词\"conda: command not found\"/\"conda activate\"/\"Could not find conda environment\"。107平台需先module load miniconda/py312再source conda.sh。\n\n---",
+      "source_file": "error_format_handbook.md",
+      "heading": "CONDA_ENV — Conda环境问题"
+    },
+    {
+      "id": "error_format_handbook.md#CUDA_DEVICE — GPU设备/驱动错误",
+      "text": "触发场景：CUDA设备不可用、驱动版本不匹配或GPU被占用。\n\n无CUDA设备：\n```\nAssertionError: Torch not compiled with CUDA enabled\nNo CUDA-capable device is detected\n```\n\n驱动版本过旧：\n```\nRuntimeError: The NVIDIA driver on your system is too old (found version 11080).\nPlease update your GPU driver to a compatible version.\n```\n\nGPU被占用：\n```\nRuntimeError: CUDA error: all CUDA-capable devices are busy or unavailable\ncudaErrorDevicesUnavailable\n```\n\n诊断要点：关键词\"Torch not compiled with CUDA\"/\"NVIDIA driver.*too old\"/\"devices are busy\"/\"No CUDA-capable device\"。常见于安装了CPU版PyTorch或在登录节点运行。\n\n---",
+      "source_file": "error_format_handbook.md",
+      "heading": "CUDA_DEVICE — GPU设备/驱动错误"
+    },
+    {
+      "id": "error_format_handbook.md#INVALID_TIME — 时间格式错误",
+      "text": "触发场景：--time参数格式不正确。\n\nsbatch时间格式错误：\n```\nsbatch: error: Invalid time limit specification: --time=2days\n```\n\n资源分配失败（时间相关）：\n```\nsbatch: error: Batch job submission failed: Unable to allocate resources\nsbatch: error: Invalid time limit specification\n```\n\n诊断要点：关键词\"Invalid time limit specification\"。正确格式：--time=HH:MM:SS 或 --time=D-HH:MM:SS。\n\n---",
+      "source_file": "error_format_handbook.md",
+      "heading": "INVALID_TIME — 时间格式错误"
+    },
+    {
+      "id": "error_format_handbook.md#DEPENDENCY — 作业依赖问题",
+      "text": "触发场景：依赖的前置作业失败或未完成。\n\n依赖作业失败：\n```\nslurmstepd: error: Dependency failed: job 11111 did not complete successfully\nJob 11112 cancelled due to dependency\n```\n\n依赖链断裂：\n```\nsbatch: error: Batch job submission failed: Dependency satisfied but job 11111 already completed with error\n```\n\n诊断要点：关键词\"Dependency failed\"/\"dependency\"/\"did not complete successfully\"。用户应先检查依赖作业的状态。\n\n---",
+      "source_file": "error_format_handbook.md",
+      "heading": "DEPENDENCY — 作业依赖问题"
+    },
+    {
+      "id": "error_format_handbook.md#ACCOUNT_ISSUE — 账号/关联问题",
+      "text": "触发场景：账号无权限或未关联到请求的账户。\n\n账号无效：\n```\nsbatch: error: Batch job submission failed: Invalid account specification\nAccess denied for account 'research_group'\n```\n\n关联未找到：\n```\nsbatch: error: Batch job submission failed: Association not found\nUser sa25232066 is not associated with the requested account\n```\n\n诊断要点：关键词\"Invalid account\"/\"Association not found\"/\"Access denied for account\"。\n\n---",
+      "source_file": "error_format_handbook.md",
+      "heading": "ACCOUNT_ISSUE — 账号/关联问题"
+    },
+    {
+      "id": "error_format_handbook.md#QOS限制类错误（非INVALID_QOS）",
+      "text": "触发场景：QOS本身有效但超出配额限制。\n\n超过最大运行时间：\n```\nsbatch: error: Batch job submission failed: QOSMaxWallDurationPerJobLimit\n```\n\n超过CPU配额：\n```\nsbatch: error: Batch job submission failed: QOSMaxCpuPerUserLimit\n```\n\n诊断要点：关键词\"QOSMax\"。与INVALID_QOS不同，这里是QOS名称正确但申请的资源超过了该QOS允许的上限。\n\n---",
+      "source_file": "error_format_handbook.md",
+      "heading": "QOS限制类错误（非INVALID_QOS）"
+    },
+    {
+      "id": "error_format_handbook.md#错误格式匹配注意事项",
+      "text": "1. 107平台的实际报错格式可能与Slurm官方文档不同——以实测为准\n2. invalid_partition：平台实际输出\"Invalid partition name specified\"，非文档中的\"Invalid partition specification\"\n3. module错误：实际格式\"ERROR: Unable to locate a modulefile for\"，非Lmod标准格式\n4. TIMEOUT信息不写入slurm-xxx.out，在.err文件或squeue状态字段中\n5. 脚本无set -e时，错误后命令会继续执行，最终输出可能包含多个错误\n6. 权限错误由bash报告，格式为\"/var/spool/slurmd/jobNNN/slurm_script: line N: ...: Permission denied\"\n7. conda未初始化时报\"conda: command not found\"，不是Python错误\n8. 裸\"Killed\"可能是OOM也可能是其他信号，需结合上下文",
+      "source_file": "error_format_handbook.md",
+      "heading": "错误格式匹配注意事项"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#脚本基本结构",
+      "text": "每个SBATCH脚本必须包含两部分：SBATCH头部声明（#开头的特殊注释）和执行命令。\n\n```bash\n#!/bin/bash\n#SBATCH -J my_job                    # 作业名称（squeue/sacct可识别）\n#SBATCH -p P107-RTX5090              # 分区（比赛用P107-RTX5090或P107-A100）\n#SBATCH -N 1                         # 节点数\n#SBATCH --gres=gpu:1                 # GPU数量\n#SBATCH -n 4                         # 总进程数\n#SBATCH --cpus-per-task=8            # 每任务CPU核数\n#SBATCH --mem=32G                    # 内存上限\n#SBATCH --time=02:00:00              # 最大运行时间（HH:MM:SS）\n#SBATCH --output=logs/%x-%j.out      # 标准输出（%x=作业名, %j=JobID）\n#SBATCH --error=logs/%x-%j.err       # 错误输出\n\n# === 执行命令 ===\nset -euo pipefail                    # 推荐：遇错即停\ncd ~/projects/my-project             # 切到项目目录\npython src/train.py                  # 执行入口\n```\n\n---",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "脚本基本结构"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#必须遵守的平台约束 > 1. 分区和QOS必须匹配",
+      "text": "107比赛分区：P107-RTX5090（RTX 5090）和P107-A100（A100 80G）。\n对应QOS：qos_p107-rtx5090 和 qos_p107-a100。\n不要写不存在的分区名（如P107-V100、GPU-5090等）。",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "必须遵守的平台约束 > 1. 分区和QOS必须匹配"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#必须遵守的平台约束 > 2. QOS资源上限不可超过",
+      "text": "qos_p107-rtx5090：最多4个作业同时运行，每组cpu=16 + gpu=4，时长不限。\nqos_p107-a100：最多4个作业同时运行，每组cpu=16 + gpu=2，时长不限。\nStudents分区默认：4CPU / 1GPU / 16G / 4小时。\n\n超过上限会在提交时直接报错（QOSMaxWallDurationPerJobLimit / QOSMaxCpuPerUserLimit）。",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "必须遵守的平台约束 > 2. QOS资源上限不可超过"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#必须遵守的平台约束 > 3. 命令行参数覆盖脚本参数",
+      "text": "sbatch -p CPU-6530 job.sh 会覆盖脚本内的 #SBATCH -p P107-RTX5090。\n如果用户说\"用某个分区提交\"，优先在命令行指定而非修改脚本。",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "必须遵守的平台约束 > 3. 命令行参数覆盖脚本参数"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#必须遵守的平台约束 > 4. 脚本中必须用绝对路径或显式cd",
+      "text": "作业在计算节点执行，工作目录默认是提交时的目录。如果提交后目录被删除，作业会失败。推荐在脚本开头显式cd到项目目录。",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "必须遵守的平台约束 > 4. 脚本中必须用绝对路径或显式cd"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#必须遵守的平台约束 > 5. 日志目录必须预先创建",
+      "text": "SBATCH不会自动创建logs/目录。如果-o logs/%x-%j.out但logs/不存在，作业可能无法写入日志。在脚本中加入mkdir -p logs。\n\n---",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "必须遵守的平台约束 > 5. 日志目录必须预先创建"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#Conda环境激活（最常见的坑） > 问题：批处理脚本中conda不可用",
+      "text": "批处理作业不自动加载conda init脚本。直接在脚本中写conda activate会报\"conda: command not found\"。",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "Conda环境激活（最常见的坑） > 问题：批处理脚本中conda不可用"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#Conda环境激活（最常见的坑） > 正确写法",
+      "text": "```bash\n#!/bin/bash\n#SBATCH -J my-train\n#SBATCH -p P107-RTX5090\n#SBATCH --gres=gpu:1\n#SBATCH -t 04:00:00\n#SBATCH -o logs/%x-%j.out\n#SBATCH -e logs/%x-%j.err\n\nset -euo pipefail\ncd ~/projects/my-project\n\n# 正确激活conda（注意set +u / set -u）\nset +u\nsource ~/miniconda3/etc/profile.d/conda.sh\nconda activate myenv\nset -u\n\npython src/train.py\n```",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "Conda环境激活（最常见的坑） > 正确写法"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#Conda环境激活（最常见的坑） > 为什么需要set +u / set -u？",
+      "text": "conda.sh脚本中引用了一些可能未定义的shell变量，在set -u模式下会报错。set +u临时关闭未定义变量检查，激活后set -u恢复。",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "Conda环境激活（最常见的坑） > 为什么需要set +u / set -u？"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#Conda环境激活（最常见的坑） > 如果conda本身未加载",
+      "text": "107平台需要先加载miniconda模块：\n```bash\nmodule load miniconda/py312\nsource /public/home/$USER/miniconda3/etc/profile.d/conda.sh\nconda activate myenv\n```\n\n---",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "Conda环境激活（最常见的坑） > 如果conda本身未加载"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#GPU相关注意事项 > 登录节点无GPU",
+      "text": "nvidia-smi在登录节点无法使用。检查GPU必须在已分配GPU的计算环境中。",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "GPU相关注意事项 > 登录节点无GPU"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#GPU相关注意事项 > 安装GPU版PyTorch",
+      "text": "登录节点无GPU，conda可能解析为CPU版PyTorch。必须强制指定CUDA版本：\n```bash\nCONDA_OVERRIDE_CUDA=\"12.4\" conda install pytorch torchvision torchaudio pytorch-cuda=12.4 -c pytorch -c nvidia -y\n```",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "GPU相关注意事项 > 安装GPU版PyTorch"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#GPU相关注意事项 > 在脚本中验证GPU",
+      "text": "```bash\nnvidia-smi                                          # 查看GPU状态\npython -c \"import torch; print(torch.cuda.is_available())\"  # 验证PyTorch可用GPU\n```",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "GPU相关注意事项 > 在脚本中验证GPU"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#GPU相关注意事项 > 指定GPU类型",
+      "text": "```bash\n#SBATCH --gres=gpu:5090:1    # 指定RTX 5090\n#SBATCH --gres=gpu:A100:1    # 指定A100\n```\n\n---",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "GPU相关注意事项 > 指定GPU类型"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#多节点MPI并行作业",
+      "text": "多节点MPI作业同时受到分区、QoS、节点数和CPU总数限制。提交前先确认账号允许的资源，不要直接照搬节点数：\n\n```bash\nsinfo -s\nsacctmgr show assoc where user=$USER format=User,Account,Partition,QOS\nmodule avail 2>&1 | grep -i mpi\n```\n\n平台提供`mpi/2021.18`和`mpi/latest`模块。下面是脚本结构示例，其中分区、QoS和节点数必须换成账号实际允许的值：\n\n```bash\n#!/bin/bash\n#SBATCH --job-name=mpi-demo\n#SBATCH --partition=<可用分区>\n#SBATCH --qos=<与分区匹配的QoS>\n#SBATCH --nodes=2\n#SBATCH --ntasks-per-node=4\n#SBATCH --time=00:10:00\n#SBATCH --output=logs/%x-%j.out\n#SBATCH --error=logs/%x-%j.err\n\nset -euo pipefail\nmodule load mpi/latest\nsrun ./my_mpi_program\n```\n\n优先使用`srun`启动MPI程序，让Slurm按已分配资源创建进程。不要在登录节点直接运行`mpirun`。如果默认Students/QoS不允许多节点，应申请相应权限或先改成单节点验证，不能通过虚构分区或超额申请绕过限制。",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "多节点MPI并行作业"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#set -euo pipefail 的使用 > 推荐在脚本开头加入",
+      "text": "```bash\nset -euo pipefail\n```\n\n含义：-e 遇错即停（命令返回非零退出码时终止脚本）、-u 未定义变量报错、-o pipefail 管道中任一命令失败则整体失败。",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "set -euo pipefail 的使用 > 推荐在脚本开头加入"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#set -euo pipefail 的使用 > 重要：无set -e时错误后继续执行",
+      "text": "如果脚本没有set -e，某条命令失败后后续命令会继续执行。例如python train.py报错后，脚本不会停止，可能产生误导性的\"成功\"输出。",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "set -euo pipefail 的使用 > 重要：无set -e时错误后继续执行"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#set -euo pipefail 的使用 > conda激活时的例外",
+      "text": "conda.sh激活脚本与set -u不兼容，需要在激活前后用set +u / set -u包裹。\n\n---",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "set -euo pipefail 的使用 > conda激活时的例外"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#时间格式",
+      "text": "正确格式：\n- --time=02:00:00 （2小时）\n- --time=00:30:00 （30分钟）\n- --time=1-00:00:00 （1天）\n- --time=72:00:00 （72小时，部分格式支持）\n\n错误格式：\n- --time=2days （不被接受）\n- --time=2h （不被接受）\n- --time=120 （仅数字，含义不明）\n\n---",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "时间格式"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#输出文件路径 > 推荐用logs目录 + 占位符",
+      "text": "```bash\n#SBATCH --output=logs/%x-%j.out\n#SBATCH --error=logs/%x-%j.err\n```\n\n%x=作业名，%j=JobID，%t=数组任务ID。",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "输出文件路径 > 推荐用logs目录 + 占位符"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#输出文件路径 > 不要写到/tmp",
+      "text": "/tmp是各节点独立的临时空间，作业结束后可能被清理。重要输出写到/public或~/projects/下。",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "输出文件路径 > 不要写到/tmp"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#输出文件路径 > 标准输出和错误分开",
+      "text": "分开写-o和-e方便定位问题。.out包含程序正常输出，.err包含错误信息和Slurm系统消息。注意TIMEOUT信息不写入.out，在.err或squeue状态中。\n\n---",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "输出文件路径 > 标准输出和错误分开"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#数据与文件管理 > 项目目录结构推荐",
+      "text": "```\nmy-project/\n  src/       # 代码\n  data/      # 数据或数据链接\n  scripts/   # sbatch脚本\n  logs/      # 标准输出和错误日志\n  outputs/   # 模型、图表、结果\n```",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "数据与文件管理 > 项目目录结构推荐"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#数据与文件管理 > 大文件不要直接上传",
+      "text": "GitHub/HuggingFace在平台可能不稳定。建议：本地clone → 打包tar -czf → 上传 → 平台解压tar -xzf。或使用USTC镜像。",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "数据与文件管理 > 大文件不要直接上传"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#数据与文件管理 > 验证上传完整性",
+      "text": "```bash\nls -lh my-project.tar.gz       # 对比大小\nsha256sum my-project.tar.gz    # 对比校验和\n```\n\n---",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "数据与文件管理 > 验证上传完整性"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#常见错误与预防 > 1. 路径拼写错误",
+      "text": "错误：python tran.py（漏字母）\n预防：脚本中用绝对路径，提交前ls确认文件存在。",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "常见错误与预防 > 1. 路径拼写错误"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#常见错误与预防 > 2. 分区名/QOS名拼写错误",
+      "text": "错误：-p P107-5090（应为P107-RTX5090）、--qos=qos_p107（不完整）\n预防：用sinfo查看分区名，sacctmgr show assoc查看可用QOS。",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "常见错误与预防 > 2. 分区名/QOS名拼写错误"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#常见错误与预防 > 3. 忘记激活conda",
+      "text": "错误：直接写python train.py，用的是系统Python而非conda环境\n预防：脚本中显式source conda.sh + conda activate。",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "常见错误与预防 > 3. 忘记激活conda"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#常见错误与预防 > 4. 日志目录不存在",
+      "text": "错误：-o logs/%x-%j.out 但logs/目录未创建\n预防：脚本开头加mkdir -p logs，或提交前手动创建。",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "常见错误与预防 > 4. 日志目录不存在"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#常见错误与预防 > 5. 时间申请过短或格式错误",
+      "text": "错误：--time=10:00（10分钟可能不够）、--time=2days（格式错误）\n预防：先跑小规模估算时间，用HH:MM:SS格式。",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "常见错误与预防 > 5. 时间申请过短或格式错误"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#常见错误与预防 > 6. 资源申请超过QOS上限",
+      "text": "错误：--gres=gpu:8（超过qos_p107-rtx5090的gpu=4上限）\n预防：查看QOS限制，合理分配GPU数量。",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "常见错误与预防 > 6. 资源申请超过QOS上限"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#常见错误与预防 > 7. 在登录节点跑训练",
+      "text": "错误：直接在Shell中运行python train.py（占用登录节点资源）\n预防：始终通过sbatch提交到计算节点。",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "常见错误与预防 > 7. 在登录节点跑训练"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#常见错误与预防 > 8. 脚本无执行权限",
+      "text": "错误：sbatch ./train.sh 但train.sh没有chmod +x\n预防：创建脚本后chmod +x train.sh，或用sbatch train.sh（不带./）。",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "常见错误与预防 > 8. 脚本无执行权限"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#常见错误与预防 > 9. 没有set -e导致错误被忽略",
+      "text": "错误：python train.py失败但后续命令继续执行，看起来\"成功\"\n预防：脚本开头加set -euo pipefail。",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "常见错误与预防 > 9. 没有set -e导致错误被忽略"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#常见错误与预防 > 10. 写文件到无权限的目录",
+      "text": "错误：torch.save(model, \"/shared/models/best.pt\")（/shared无写权限）\n预防：输出路径写在自己的/home或/public目录下。\n\n---",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "常见错误与预防 > 10. 写文件到无权限的目录"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#完整模板集合 > 最小测试脚本",
+      "text": "```bash\n#!/bin/bash\n#SBATCH -J hello-test\n#SBATCH -p Students\n#SBATCH --qos=qos_stu_default\n#SBATCH -t 00:05:00\n#SBATCH -o logs/%x-%j.out\n#SBATCH -e logs/%x-%j.err\n\nset -euo pipefail\nmkdir -p logs\ncd ~/projects/hello-test\n\necho \"Hello from $(hostname)\"\necho \"Python: $(python -V)\"\necho \"Date: $(date)\"\npwd\nls -la\n```",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "完整模板集合 > 最小测试脚本"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#完整模板集合 > GPU训练脚本",
+      "text": "```bash\n#!/bin/bash\n#SBATCH -J gpu-train\n#SBATCH -p P107-RTX5090\n#SBATCH --qos=qos_p107-rtx5090\n#SBATCH -N 1\n#SBATCH --gres=gpu:1\n#SBATCH --cpus-per-task=8\n#SBATCH --mem=32G\n#SBATCH --time=04:00:00\n#SBATCH -o logs/%x-%j.out\n#SBATCH -e logs/%x-%j.err\n\nset -euo pipefail\nmkdir -p logs\ncd ~/projects/my-train\n\n# 激活conda\nset +u\nmodule load miniconda/py312\nsource /public/home/$USER/miniconda3/etc/profile.d/conda.sh\nconda activate myenv\nset -u\n\n# 环境检查\nnvidia-smi\npython -c \"import torch; print(f'CUDA available: {torch.cuda.is_available()}')\"\n\n# 开始训练\npython src/train.py --epochs 100 --batch-size 32\n```",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "完整模板集合 > GPU训练脚本"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#完整模板集合 > 数组作业（超参数搜索）",
+      "text": "```bash\n#!/bin/bash\n#SBATCH -J hp-search\n#SBATCH -p P107-RTX5090\n#SBATCH --qos=qos_p107-rtx5090\n#SBATCH --gres=gpu:1\n#SBATCH -n 4\n#SBATCH --time=02:00:00\n#SBATCH --array=1-10\n#SBATCH -o logs/%x-%j-%t.out\n#SBATCH -e logs/%x-%j-%t.err\n\nset -euo pipefail\nmkdir -p logs outputs\ncd ~/projects/hp-search\n\n# 根据任务编号选择超参数\ncase $SLURM_ARRAY_TASK_ID in\n  1) LR=0.1;   BS=32;;\n  2) LR=0.05;  BS=32;;\n  3) LR=0.01;  BS=64;;\n  4) LR=0.005; BS=64;;\n  5) LR=0.001; BS=128;;\n  *) LR=0.001; BS=32;;\nesac\n\nset +u\nsource ~/miniconda3/etc/profile.d/conda.sh\nconda activate myenv\nset -u\n\npython src/train.py --lr $LR --batch-size $BS \\\n  --output outputs/run-${SLURM_ARRAY_TASK_ID}\n```",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "完整模板集合 > 数组作业（超参数搜索）"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#完整模板集合 > 多GPU分布式训练",
+      "text": "```bash\n#!/bin/bash\n#SBATCH -J dist-train\n#SBATCH -p P107-RTX5090\n#SBATCH --qos=qos_p107-rtx5090\n#SBATCH -N 2\n#SBATCH --gres=gpu:4\n#SBATCH -n 16\n#SBATCH --time=12:00:00\n#SBATCH -o logs/%x-%j.out\n#SBATCH -e logs/%x-%j.err\n\nset -euo pipefail\nmkdir -p logs\ncd ~/projects/dist-train\n\nexport MASTER_ADDR=$(hostname)\nexport MASTER_PORT=29500\nexport NCCL_DEBUG=INFO\n\nset +u\nsource ~/miniconda3/etc/profile.d/conda.sh\nconda activate myenv\nset -u\n\ntorchrun --nnodes=$SLURM_JOB_NUM_NODES \\\n         --nproc_per_node=4 \\\n         --rdzv_id=$SLURM_JOB_ID \\\n         --rdzv_backend=c10d \\\n         --rdzv_endpoint=$MASTER_ADDR:$MASTER_PORT \\\n         src/train.py --epochs 500\n```\n\n注意：qos_p107-rtx5090限制gpu=4/作业，这里--gres=gpu:4刚好到上限。qos_p107-a100限制gpu=2。\n\n---",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "完整模板集合 > 多GPU分布式训练"
+    },
+    {
+      "id": "sbatch_scripting_guide.md#提交前检查清单",
+      "text": "1. logs/目录是否存在？（或脚本中有mkdir -p logs）\n2. cd路径是否是真实的项目路径？\n3. conda环境名称是否正确？能否手动激活？\n4. 是否用少量数据通过了冒烟测试？\n5. 资源参数是否在QOS限制内？（GPU数、CPU数、内存、时间）\n6. 分区名和QOS名拼写是否正确？\n7. 入口脚本文件名和路径是否正确？\n8. 输出路径是否在自己的目录下（有写权限）？\n9. 脚本是否有set -euo pipefail（或至少set -e）？\n10. 如果是GPU任务，是否安装了GPU版PyTorch（非CPU版）？",
+      "source_file": "sbatch_scripting_guide.md",
+      "heading": "提交前检查清单"
+    },
+    {
+      "id": "scow_platform_guide.md#平台定位与架构",
+      "text": "中国科大本科算力平台（https://107.ustc.edu.cn/）是一组学校统一管理的服务器，面向课程作业、训练项目、数值计算、统计模拟和科研训练。用户提交代码、数据和作业需求，平台在合适的计算节点上运行任务，日志和结果留在用户工作目录。\n\n平台由三类节点组成。登录节点（tradmin-02）用于文件管理、编辑脚本、安装轻量依赖、提交作业，不可在此运行训练或大型计算。计算节点（anode系列）通过Slurm调度访问，用于实际的GPU训练、大规模数值计算等。共享存储让登录节点和计算节点看到相同的用户文件，在登录节点上传的代码在计算任务中可直接访问。\n\n重要认知：登录Shell不等于能跑训练——训练必须通过Slurm到计算节点；关闭浏览器不会停止批处理作业（由调度器管理）；资源是共享的，不要盲目申请过多资源。\n\n---",
+      "source_file": "scow_platform_guide.md",
+      "heading": "平台定位与架构"
+    },
+    {
+      "id": "scow_platform_guide.md#快速入门流程",
+      "text": "首次使用推荐路径：打开https://107.ustc.edu.cn/ → 学校账号登录 → 确认看到文件管理、Shell终端、作业/Slurm入口、资源申请 → 创建VS Code应用或登录集群Shell → 创建工作目录 → 准备最小程序 → 提交第一个批处理任务 → 查看日志。\n\n创建工作目录示例：\n```bash\nmkdir -p ~/projects/hello-cp4u/{src,logs,outputs}\ncd ~/projects/hello-cp4u\n```\n\n推荐项目目录结构：\n```\nmy-project/\n  src/       # 代码\n  data/      # 数据或数据链接\n  scripts/   # sbatch脚本、启动脚本\n  logs/      # 标准输出和错误日志\n  outputs/   # 模型、图表、结果表格\n```\n\n---",
+      "source_file": "scow_platform_guide.md",
+      "heading": "快速入门流程"
+    },
+    {
+      "id": "scow_platform_guide.md#访问方式与入口",
+      "text": "平台提供四种入口。SCOW Web门户（https://107.ustc.edu.cn/）提供图形界面，包括应用管理、作业提交、文件管理、WebShell。VS Code在线编辑器通过\"应用\"入口创建，适合编码+终端+环境配置。登录集群Shell用于创建目录、检查文件、提交Slurm作业、短时调试。SSH命令行目前不作为主线入口（平台不假设SSH可用）。\n\n默认分区和QOS：统一认证登录默认使用Students分区和qos_stu_default QOS。\n\n---",
+      "source_file": "scow_platform_guide.md",
+      "heading": "访问方式与入口"
+    },
+    {
+      "id": "scow_platform_guide.md#QOS资源配额",
+      "text": "平台QOS层级（2026-05-21快照）：\n\nqos_stu_default：4 CPU / 1 GPU / 16G内存 / 最长4小时，适用于默认用户、小作业、调试。\nqos_stu_small：8 CPU / 1 GPU / 32G内存 / 最长8小时，适用于课程实验、小模型训练。\nqos_stu_medium_2gpu：24 CPU / 2 GPU / 128G内存 / 最长12小时，适用于双GPU训练。\nqos_stu_long：16 CPU / 1 GPU / 64G内存 / 最长72小时，适用于单GPU长训练。\nqos_stu_cpu_long：32 CPU / 0 GPU / 128G内存 / 最长72小时，适用于CPU长任务、数据预处理。\n\n资源申请流程：进入https://107.ustc.edu.cn/apply → 选择QOS层级 → 填写任务用途和时间范围 → 如需导师确认则填写导师信息 → 管理员审批 → QOS授权到Slurm账户 → 创建应用或提交作业时选择新QOS。\n\n---",
+      "source_file": "scow_platform_guide.md",
+      "heading": "QOS资源配额"
+    },
+    {
+      "id": "scow_platform_guide.md#环境配置",
+      "text": "核心原则：每个项目应有独立的conda/mamba环境。\n\n安装Miniconda：\n```bash\ncd ~\nwget https://mirrors.ustc.edu.cn/anaconda/miniconda/Miniconda3-latest-Linux-x86_64.sh\nbash Miniconda3-latest-Linux-x86_64.sh -b -p \"$HOME/miniconda3\"\n~/miniconda3/bin/conda init bash\nsource ~/.bashrc\n```\n\n配置USTC镜像源（.condarc）：\n```yaml\nchannels:\n  - https://mirrors.ustc.edu.cn/anaconda/cloud/conda-forge\n  - https://mirrors.ustc.edu.cn/anaconda/pkgs/main\n  - https://mirrors.ustc.edu.cn/anaconda/pkgs/r\nshow_channel_urls: true\n```\n\npip镜像：pip config set global.index-url https://mirrors.ustc.edu.cn/pypi/web/simple\n\n创建环境：\n```bash\nconda create -n py310 python=3.10 -y\nconda activate py310\n```\n\n安装GPU版PyTorch（登录节点无GPU，conda可能解析为CPU版，须强制指定CUDA）：\n```bash\nCONDA_OVERRIDE_CUDA=\"12.4\" conda install pytorch torchvision torchaudio pytorch-cuda=12.4 -c pytorch -c nvidia -y\n```\n\n在作业脚本中激活conda环境（注意set +u/set -u防止批处理中未定义变量报错）：\n```bash\nset +u\nsource ~/miniconda3/etc/profile.d/conda.sh\nconda activate py310\nset -u\npython src/train.py\n```\n\nGPU环境检查（必须在已分配GPU的环境中执行）：\n```bash\nnvidia-smi\npython -c \"import torch; print(torch.cuda.is_available())\"\n```\n\n---",
+      "source_file": "scow_platform_guide.md",
+      "heading": "环境配置"
+    },
+    {
+      "id": "scow_platform_guide.md#作业提交",
+      "text": "交互式 vs 批处理：交互式（srun --pty bash）适合短时调试（检查GPU、试命令、环境调试）；批处理（sbatch脚本）适合训练、模拟、批量实验、需要日志的任务、需要关浏览器后继续运行的任务。\n\n最小作业脚本：\n```bash\n#!/bin/bash\n#SBATCH -J hello\n#SBATCH -o logs/%x-%j.out\n#SBATCH -e logs/%x-%j.err\n#SBATCH -t 00:05:00\nset -euo pipefail\ncd ~/projects/my-project\npython src/hello.py\n```\n\nGPU训练脚本模板：\n```bash\n#!/bin/bash\n#SBATCH -J my-train\n#SBATCH -p Students\n#SBATCH --qos=qos_stu_default\n#SBATCH --gres=gpu:5090:1\n#SBATCH --cpus-per-task=4\n#SBATCH -t 04:00:00\n#SBATCH -o logs/%x-%j.out\n#SBATCH -e logs/%x-%j.err\nset -euo pipefail\ncd ~/projects/my-project\nset +u\nsource ~/miniconda3/etc/profile.d/conda.sh\nconda activate py310\nset -u\nnvidia-smi\npython src/train.py\n```\n\n提交前检查清单：logs/目录已存在、cd路径是真实项目路径、环境名称正确且可手动激活、已用少量数据通过冒烟测试、资源参数在平台/课程限制内。\n\n指定GPU类型（如允许）：\n```bash\n#SBATCH --gres=gpu:5090:1\n#SBATCH --gres=gpu:A100:1\n```\n\n---",
+      "source_file": "scow_platform_guide.md",
+      "heading": "作业提交"
+    },
+    {
+      "id": "scow_platform_guide.md#文件管理",
+      "text": "上传流程：小文件通过GUI上传；大目录先在本地打包tar -czf，上传压缩包后在平台解压tar -xzf。\n\n验证上传完整性：\n```bash\nls -lh my-project.tar.gz       # 对比大小\nsha256sum my-project.tar.gz    # 对比校验和\n```\n\n外部下载注意：GitHub/HuggingFace在平台可能不稳定，建议使用USTC镜像、课程提供的下载链接或国内镜像。先在本地clone仓库，打包后上传。\n\n下载结果：\n```bash\ncd ~/projects/my-project\ntar -czf outputs-$(date +%Y%m%d).tar.gz outputs logs\n```\n\n反模式：所有文件堆在主目录根下、不记录参数就覆盖旧结果、在作业脚本中使用终端特定的相对路径、在共享存储堆积无关大文件。\n\n---",
+      "source_file": "scow_platform_guide.md",
+      "heading": "文件管理"
+    },
+    {
+      "id": "scow_platform_guide.md#命令行常用命令",
+      "text": "位置确认：hostname、pwd、whoami、date\n文件目录：ls -lh、mkdir -p、cd、cp、mv、rm、tar -czf/tar -xzf、sha256sum\n日志查看：cat、less、tail -n、tail -f、sed -n、grep -n\n编辑：nano（新手友好）、vim、python -m py_compile（仅语法检查）\nPython/环境：python -V、which python、conda env list、conda activate、pip list、pip freeze > requirements.lock.txt\nSlurm作业：sbatch、squeue -u \"$USER\"、scontrol show job <job_id>、scancel <job_id>、scontrol show part、sinfo\n\nWeb终端注意事项：可能断连；Ctrl+C是中断程序不是复制；Ctrl+V可能被浏览器拦截；Mac部分Ctrl+箭头组合键无法到达终端；解决方案：右键复制粘贴，使用tmux保持会话。\n\n---",
+      "source_file": "scow_platform_guide.md",
+      "heading": "命令行常用命令"
+    },
+    {
+      "id": "scow_platform_guide.md#作业状态与排查",
+      "text": "作业状态速查：PD=PENDING排队等待资源、R=RUNNING运行中、CG=COMPLETING退出中、CD=COMPLETED正常结束、F=FAILED失败、Ca=CANCELLED取消。\n\n排查顺序：\n1. squeue -u \"$USER\" — 作业还在排队还是已在运行？\n2. scontrol show job <job_id> — 资源请求和等待原因\n3. tail -n 80 logs/<file>.err — 错误日志\n4. tail -n 80 logs/<file>.out — 程序输出\n5. 如果是GPU任务：检查nvidia-smi输出\n\nscontrol show part关键字段：PartitionName、AllowAccounts、AllowQos、Nodes、State、TRES。\nsinfo节点状态：idle=空闲、mix=部分占用、comp=基本满、down/down*=不可用、drng=排空中。\n\n---",
+      "source_file": "scow_platform_guide.md",
+      "heading": "作业状态与排查"
+    },
+    {
+      "id": "scow_platform_guide.md#常见问题（FAQ） > nvidia-smi找不到GPU",
+      "text": "可能原因：在登录节点运行（无GPU）、作业未申请GPU、作业还在排队。解决：确认脚本中有GPU申请，在脚本中加入nvidia-smi，用squeue检查。",
+      "source_file": "scow_platform_guide.md",
+      "heading": "常见问题（FAQ） > nvidia-smi找不到GPU"
+    },
+    {
+      "id": "scow_platform_guide.md#常见问题（FAQ） > 作业一直排队",
+      "text": "原因：资源紧张、申请过多、分区/QOS不匹配、达到用户上限。解决：先跑小规模冒烟测试。",
+      "source_file": "scow_platform_guide.md",
+      "heading": "常见问题（FAQ） > 作业一直排队"
+    },
+    {
+      "id": "scow_platform_guide.md#常见问题（FAQ） > QOSMaxWallDurationPerJobLimit错误",
+      "text": "运行时间超过QOS限制（默认最长4小时）。解决：减少-t到4小时以内。",
+      "source_file": "scow_platform_guide.md",
+      "heading": "常见问题（FAQ） > QOSMaxWallDurationPerJobLimit错误"
+    },
+    {
+      "id": "scow_platform_guide.md#常见问题（FAQ） > QOSMaxCpuPerUserLimit错误",
+      "text": "CPU申请超过用户/QOS限制（默认4 CPU）。解决：保持--cpus-per-task <= 4。",
+      "source_file": "scow_platform_guide.md",
+      "heading": "常见问题（FAQ） > QOSMaxCpuPerUserLimit错误"
+    },
+    {
+      "id": "scow_platform_guide.md#常见问题（FAQ） > 没有日志文件",
+      "text": "原因：logs/目录不存在、路径错误、作业未启动、Slurm在写入前就拒绝。解决：提交前mkdir -p logs。",
+      "source_file": "scow_platform_guide.md",
+      "heading": "常见问题（FAQ） > 没有日志文件"
+    },
+    {
+      "id": "scow_platform_guide.md#常见问题（FAQ） > 训练OOM（CUDA out of memory）",
+      "text": "解决：减小batch size、模型大小或输入大小。系统杀进程：减少数据加载worker数或申请更多内存。数据加载慢：文件组织、worker数或存储I/O问题。",
+      "source_file": "scow_platform_guide.md",
+      "heading": "常见问题（FAQ） > 训练OOM（CUDA out of memory）"
+    },
+    {
+      "id": "scow_platform_guide.md#常见问题（FAQ） > conda安装了CPU版PyTorch",
+      "text": "登录节点无GPU，conda解析为CPU版。修复：CONDA_OVERRIDE_CUDA=\"12.4\" conda install pytorch ...",
+      "source_file": "scow_platform_guide.md",
+      "heading": "常见问题（FAQ） > conda安装了CPU版PyTorch"
+    },
+    {
+      "id": "scow_platform_guide.md#常见问题（FAQ） > 作业中找不到conda",
+      "text": "批处理作业不自动加载conda init脚本。修复：在脚本中加入source ~/miniconda3/etc/profile.d/conda.sh。",
+      "source_file": "scow_platform_guide.md",
+      "heading": "常见问题（FAQ） > 作业中找不到conda"
+    },
+    {
+      "id": "scow_platform_guide.md#常见问题（FAQ） > 更多CPU worker更快？",
+      "text": "不一定。过多worker导致CPU争用、内存压力、文件系统压力。先小规模基准测试。",
+      "source_file": "scow_platform_guide.md",
+      "heading": "常见问题（FAQ） > 更多CPU worker更快？"
+    },
+    {
+      "id": "scow_platform_guide.md#常见问题（FAQ） > 关闭浏览器任务会停吗？",
+      "text": "批处理作业：不会，由调度器管理独立于浏览器。交互式Shell/Web终端：可能受影响。使用tmux保持交互式会话；长任务用批处理脚本。",
+      "source_file": "scow_platform_guide.md",
+      "heading": "常见问题（FAQ） > 关闭浏览器任务会停吗？"
+    },
+    {
+      "id": "scow_platform_guide.md#常见问题（FAQ） > nvidia-smi报告Driver/library version mismatch",
+      "text": "NVML/驱动库版本与节点驱动不匹配。记录JobID、节点名、GPU型号、完整错误信息，报告平台管理员。",
+      "source_file": "scow_platform_guide.md",
+      "heading": "常见问题（FAQ） > nvidia-smi报告Driver/library version mismatch"
+    },
+    {
+      "id": "scow_platform_guide.md#常见问题（FAQ） > 向平台求助时需提供",
+      "text": "问题发生的步骤、作业ID、提交脚本、.out和.err关键内容、资源请求参数、已尝试的排查步骤。\n\n---",
+      "source_file": "scow_platform_guide.md",
+      "heading": "常见问题（FAQ） > 向平台求助时需提供"
+    },
+    {
+      "id": "scow_platform_guide.md#学科场景指南 > 深度学习作业",
+      "text": "适用：PyTorch/TensorFlow训练、GPU模型实验、从个人电脑迁移。流程：组织项目目录 → 配置conda环境 → 写冒烟测试（1 epoch、小batch） → 提交GPU冒烟脚本 → 逐步扩大规模 → 归档结果。",
+      "source_file": "scow_platform_guide.md",
+      "heading": "学科场景指南 > 深度学习作业"
+    },
+    {
+      "id": "scow_platform_guide.md#学科场景指南 > 数学统计",
+      "text": "适用：Monte Carlo模拟、参数扫描/网格搜索、数值优化、ODE求解、批量独立实验。流程：准备最小输入 → 小规模验证输出格式 → 参数放配置文件或命令行 → Slurm脚本提交 → 每个实验独立目录。",
+      "source_file": "scow_platform_guide.md",
+      "heading": "学科场景指南 > 数学统计"
+    },
+    {
+      "id": "scow_platform_guide.md#学科场景指南 > 物理化学",
+      "text": "适用：物理模拟/数值求解、化学/材料/结构计算、批量实验数据处理。建议：每组输入独立目录避免输出覆盖、先小系统/少步数测试、保存软件版本+输入文件+提交脚本+输出日志。\n\n---",
+      "source_file": "scow_platform_guide.md",
+      "heading": "学科场景指南 > 物理化学"
+    },
+    {
+      "id": "scow_platform_guide.md#交互式计算",
+      "text": "CPU交互式：\n```bash\nsrun -p Students --qos=qos_stu_default -c 1 -t 00:10:00 --pty bash\n```\n\nGPU交互式：\n```bash\nsrun -p Students --qos=qos_stu_default --gres=gpu:1 -c 1 -t 00:10:00 --pty bash\n```\n\n注意：交互式会话仅用于调试，训练/模拟/批量实验应使用sbatch脚本。退出交互会话后资源自动释放。\n\n---",
+      "source_file": "scow_platform_guide.md",
+      "heading": "交互式计算"
+    },
+    {
+      "id": "scow_platform_guide.md#平台状态快照（2026-05-21）",
+      "text": "登录节点：tradmin-02\n用户目录：/home/scc/<account>\n登录Shell Python：3.12.3\nStudents分区节点：anode[05-17]\nStudents分区TRES：cpu=1664, mem=7500G, gres/gpu=104\n可用QOS：qos_stu001, qos_stu_default, qos_stu_small, qos_stu_medium, qos_stu_medium_2gpu, qos_stu_long, qos_stu_cpu_long\n节点状态含义：idle=空闲、mix=部分占用、comp=基本满、down=不可用\n\n---",
+      "source_file": "scow_platform_guide.md",
+      "heading": "平台状态快照（2026-05-21）"
+    },
+    {
+      "id": "scow_platform_guide.md#关键链接",
+      "text": "平台入口：https://107.ustc.edu.cn/\n资源申请：https://107.ustc.edu.cn/apply\nUSTC镜像：https://mirrors.ustc.edu.cn\nSlurm官方文档：https://slurm.schedmd.com/documentation.html\n问题反馈：hmli@ustc.edu.cn",
+      "source_file": "scow_platform_guide.md",
+      "heading": "关键链接"
+    },
+    {
+      "id": "slurm_command_reference.md#命令速查表",
+      "text": "| 命令 | 用途 | 常用示例 |\n|------|------|----------|\n| sinfo | 查看分区和节点状态 | sinfo, sinfo -N -p P107-RTX5090 |\n| squeue | 查看作业队列 | squeue -u $USER, squeue -p Students |\n| sbatch | 提交批处理作业 | sbatch job.sh |\n| srun | 交互式运行 | srun -p Students --gres=gpu:1 --pty bash |\n| scancel | 取消作业 | scancel <JobID>, scancel -u $USER -t PENDING |\n| scontrol | 查看/修改作业和分区详情 | scontrol show job <JobID>, scontrol show part |\n| sacct | 查看作业历史 | sacct -u $USER -X --format=JobID,State |\n| sacctmgr | 管理账户/QOS | sacctmgr show assoc user=$USER |\n\n---",
+      "source_file": "slurm_command_reference.md",
+      "heading": "命令速查表"
+    },
+    {
+      "id": "slurm_command_reference.md#sinfo — 查看集群与分区状态",
+      "text": "```bash\nsinfo                          # 查看所有分区和节点状态\nsinfo -N                       # 按节点逐行显示\nsinfo -N -p P107-RTX5090      # 查看指定分区的每个节点\nsinfo -s                       # 紧凑概览格式\nsinfo --noheader               # 跳过表头（也可用 -h）\n```\n\n输出字段：PARTITION分区名（*=默认）、NODES该状态节点数、STATE状态码、NODELIST节点列表。\n\n状态码含义：idle=空闲可调度、mix=部分占用、alloc=全部占满、down*=宕机（*表示已降级）、drng=排空中（正在恢复）、comp=即将完成。\n\n同一分区可有多行（每行一种状态），总节点数=各状态行NODES之和。例如P107-RTX5090显示\"1 mix + 14 idle\"表示共15个节点，1个部分占用14个空闲。\n\n---",
+      "source_file": "slurm_command_reference.md",
+      "heading": "sinfo — 查看集群与分区状态"
+    },
+    {
+      "id": "slurm_command_reference.md#squeue — 查看作业队列",
+      "text": "```bash\nsqueue                         # 查看所有作业\nsqueue -u $USER                # 只看自己的作业\nsqueue -p P107-RTX5090        # 查看指定分区的作业\nsqueue --noheader              # 跳过表头（也可用 -h）\nsqueue --format=\"%i %P %j %b %M\"  # 自定义格式（含GPU分配）\n```\n\n输出字段：JOBID作业编号、PARTITION所在分区、NAME作业名（-J参数）、ST状态码、TIME已运行时长、NODELIST运行节点/排队原因。\n\n状态码：R=RUNNING运行中、PD=PENDING排队中、CG=COMPLETING退出中、CD=COMPLETED已完成、F=FAILED失败、CA=CANCELLED取消、S=SUSPENDED挂起。\n\n排队原因（Reason列）速查：\n- (Resources) 资源不足，等待分配\n- (Priority) 优先级不足\n- (Dependency) 依赖的作业未完成\n- (AssocGrpJobsLimit) 达到QOS作业数上限\n- (AssocGrpCPULimit) 达到CPU配额上限\n- (BeginTime) 等待开始时间到达\n\n---",
+      "source_file": "slurm_command_reference.md",
+      "heading": "squeue — 查看作业队列"
+    },
+    {
+      "id": "slurm_command_reference.md#sbatch — 提交批处理作业",
+      "text": "```bash\nsbatch job.sh                  # 提交作业脚本\nsbatch -p CPU-6530 job.sh      # 命令行指定分区（覆盖脚本内的#SBATCH设置）\nsbatch --test-only job.sh      # 仅测试调度可行性，不实际运行\n```\n\n输出：Submitted batch job <JobID>\n\n命令行参数优先级高于脚本中的#SBATCH参数。\n\n---",
+      "source_file": "slurm_command_reference.md",
+      "heading": "sbatch — 提交批处理作业"
+    },
+    {
+      "id": "slurm_command_reference.md#SBATCH 参数详解",
+      "text": "| 参数 | 短选项 | 说明 | 示例 |\n|------|--------|------|------|\n| --job-name | -J | 作业名称 | -J my_train |\n| --partition | -p | 目标分区 | -p P107-RTX5090 |\n| --nodes | -N | 申请节点数 | -N 2 |\n| --gres | | 通用资源（GPU） | --gres=gpu:2 或 --gres=gpu:5090:1 |\n| --ntasks | -n | 总MPI进程数 | -n 4 |\n| --cpus-per-task | -c | 每任务CPU核数 | -c 8 |\n| --mem | | 内存上限 | --mem=64G |\n| --time | -t | 最大运行时长 | --time=02:00:00 |\n| --output | -o | 标准输出文件 | -o logs/%x-%j.out |\n| --error | -e | 错误输出文件 | -e logs/%x-%j.err |\n| --qos | | 指定QOS | --qos=qos_stu_default |\n| --array | | 数组作业 | --array=1-10 |\n| --account | -A | 账户 | -A myaccount |\n| --mail-type | | 邮件通知类型 | --mail-type=END |\n| --exclusive | | 独占整个节点 | |\n\n文件名占位符：%j=JobID、%x=作业名、%t=数组任务ID。\n\n---",
+      "source_file": "slurm_command_reference.md",
+      "heading": "SBATCH 参数详解"
+    },
+    {
+      "id": "slurm_command_reference.md#srun — 交互式运行",
+      "text": "```bash\n# CPU交互式（调试用）\nsrun -p Students --qos=qos_stu_default -c 1 -t 00:10:00 --pty bash\n\n# GPU交互式\nsrun -p Students --qos=qos_stu_default --gres=gpu:1 -c 1 -t 00:10:00 --pty bash\n\n# 直接运行命令\nsrun -p P107-RTX5090 --gres=gpu:1 --time=01:00:00 python train.py\n```\n\n交互式会话仅用于调试。退出后资源自动释放。长时间任务请用sbatch。\n\n---",
+      "source_file": "slurm_command_reference.md",
+      "heading": "srun — 交互式运行"
+    },
+    {
+      "id": "slurm_command_reference.md#scancel — 取消作业",
+      "text": "```bash\nscancel 2049                   # 取消单个作业\nscancel -u $USER -t PENDING    # 取消自己所有排队作业\nscancel -p P107-RTX5090       # 取消某分区所有自己的作业\n```\n\n只能取消自己的作业。\n\n---",
+      "source_file": "slurm_command_reference.md",
+      "heading": "scancel — 取消作业"
+    },
+    {
+      "id": "slurm_command_reference.md#scontrol — 查看详情",
+      "text": "```bash\nscontrol show job 18447        # 查看单个作业完整配置（排错首选）\nscontrol show part             # 查看所有分区详情\nscontrol show part P107-RTX5090  # 查看指定分区\nscontrol show nodes            # 查看所有节点状态\nscontrol show hostnames $SLURM_JOB_NODELIST  # 展开节点列表\n```\n\nscontrol show job 关键字段：\n- JobId: 作业编号\n- JobState: 当前状态\n- Partition: 所在分区\n- RunTime: 已运行时长\n- TimeLimit: 最大运行时间\n- NodeList: 分配到的节点\n- NumCPUs: 分配的CPU核数\n- ReqTRES: 请求的资源（cpu/gpu/内存）\n- AllocTRES: 实际分配的资源\n- QOS: 使用的QOS\n- Command: 执行的命令\n- Reason: 排队原因（PENDING时查看）\n- ExitCode: 退出码（FAILED时查看，格式为exit:signal）\n\n---",
+      "source_file": "slurm_command_reference.md",
+      "heading": "scontrol — 查看详情"
+    },
+    {
+      "id": "slurm_command_reference.md#sacct — 查看作业历史",
+      "text": "```bash\nsacct -u $USER -X --format=JobID,JobName,Elapsed,State\nsacct -u $USER -X --format=JobID,Partition,State,ExitCode\n```\n\n常用输出列：JobID作业编号、JobName作业名、Partition分区、AllocCPUS分配CPU数、ReqMem申请内存、Elapsed已运行时长、State最终状态、ExitCode退出码（0:0=正常）。\n\n注意：sacct在107平台可能功能受限，不可完全依赖。\n\n---",
+      "source_file": "slurm_command_reference.md",
+      "heading": "sacct — 查看作业历史"
+    },
+    {
+      "id": "slurm_command_reference.md#sacctmgr — 查看QOS和账户",
+      "text": "```bash\nsacctmgr show assoc user=$USER format=User,Partition,QOS  # 查看自己可用的QOS\nsacctmgr list qos -p             # 列出所有QOS\nsacctmgr show user $USER withassoc  # 查看用户详细信息\n```\n\n---",
+      "source_file": "slurm_command_reference.md",
+      "heading": "sacctmgr — 查看QOS和账户"
+    },
+    {
+      "id": "slurm_command_reference.md#作业管理（挂起/恢复/重排队）",
+      "text": "```bash\n# 排队中的作业\nscontrol hold 2049              # 挂起（暂停分配）\nscontrol release 2049           # 释放（恢复排队）\n\n# 运行中的作业\nscontrol suspend 2049           # 暂停运行（让出资源）\nscontrol resume 2049            # 继续运行\n\n# 重新排队\nscontrol requeue 2049           # 让作业重新排队（适用于被抢占或失败的作业）\n```\n\n使用场景：排队久等高优先级作业来临时hold自己的低优作业腾位置；运行中的作业被抢占后用requeue等资源够再跑。\n\n---",
+      "source_file": "slurm_command_reference.md",
+      "heading": "作业管理（挂起/恢复/重排队）"
+    },
+    {
+      "id": "slurm_command_reference.md#Slurm 环境变量（仅作业脚本内有效）",
+      "text": "| 变量 | 含义 |\n|------|------|\n| $SLURM_JOB_ID | 作业编号 |\n| $SLURM_JOB_NAME | 作业名称 |\n| $SLURM_SUBMIT_DIR | 提交作业的目录 |\n| $SLURM_JOB_NODELIST | 分配的节点列表 |\n| $SLURM_NNODES | 节点总数 |\n| $SLURM_NTASKS | 总任务数（-n） |\n| $SLURM_CPUS_PER_TASK | 每任务CPU（-c） |\n| $SLURM_GPUS | 分配到的GPU数 |\n| $SLURM_GPUS_PER_NODE | 每节点GPU数 |\n| $SLURM_NPROCS | 分配的CPU核数 |\n| $SLURM_MEM_PER_NODE | 每节点内存 |\n| $SLURM_PARTITION | 当前分区名 |\n| $SLURM_ARRAY_TASK_ID | 数组作业任务编号 |\n| $SLURM_JOB_CPUS_PER_NODE | 各节点CPU核数 |\n| $SLURM_TASKS_PER_NODE | 各节点任务数 |\n\n重要：这些变量仅在sbatch提交的作业脚本内有效，在登录节点Shell中无定义。\n\n---",
+      "source_file": "slurm_command_reference.md",
+      "heading": "Slurm 环境变量（仅作业脚本内有效）"
+    },
+    {
+      "id": "slurm_command_reference.md#107平台分区速查",
+      "text": "| 分区 | 节点 | CPU | GPU | 说明 |\n|------|------|-----|-----|------|\n| CPU-6530* | anode[01-15] | 1920 | — | 默认分区 |\n| CPU-8358P | anode[16-17] | 256 | — | 大内存 |\n| GPU-RTX5090 | anode[01-15] | 1920 | 120 | GPU通用 |\n| GPU-A100 | anode[16-17] | 256 | 16 | A100大模型 |\n| P107-RTX5090 | anode[01-15] | 1920 | 120 | 比赛GPU |\n| P107-A100 | anode[16-17] | 256 | 16 | 比赛高精度 |\n| Students | anode[05-17] | 1664 | 104 | 学生统一认证 |\n\n---",
+      "source_file": "slurm_command_reference.md",
+      "heading": "107平台分区速查"
+    },
+    {
+      "id": "slurm_command_reference.md#107平台QOS速查",
+      "text": "| QOS | 分区 | MaxJobs | GrpTRES | 时长 |\n|-----|------|---------|---------|------|\n| qos_p107-rtx5090 | P107-RTX5090 | 4 | cpu=16, gpu=4 | 不限 |\n| qos_p107-a100 | P107-A100 | 4 | cpu=16, gpu=2 | 不限 |\n| qos_stu_default | Students | — | 4CPU/1GPU/16G | 4h |\n| qos_stu_small | Students | — | 8CPU/1GPU/32G | 8h |\n| qos_stu_medium_2gpu | Students | — | 24CPU/2GPU/128G | 12h |\n| qos_stu_long | Students | — | 16CPU/1GPU/64G | 72h |\n| qos_stu_cpu_long | Students | — | 32CPU/0GPU/128G | 72h |\n\n---",
+      "source_file": "slurm_command_reference.md",
+      "heading": "107平台QOS速查"
+    },
+    {
+      "id": "slurm_command_reference.md#排查流程决策树",
+      "text": "作业出问题时按以下顺序排查：\n\n1. 作业在哪？→ squeue -u \"$USER\"\n   - 看不到 → 作业已结束，用sacct查历史\n   - PD → 看Reason列，跳到步骤2\n   - R → 作业在运行，跳到步骤4\n   - F/CA → 作业失败/被取消，跳到步骤3\n\n2. 为什么排队？→ scontrol show job <JobID> 看Reason\n   - Resources → 资源不足，减少申请或等待\n   - Priority → 优先级不够，等更高优作业完成\n   - AssocGrpJobsLimit → 达到QOS上限，等现有作业完成或减少申请\n   - Dependency → 依赖的作业未完成\n\n3. 为什么失败？→ 查看日志文件\n   - tail -n 80 logs/*.err → 错误日志\n   - tail -n 80 logs/*.out → 程序输出\n   - scontrol show job <JobID> → 看ExitCode（格式exit:signal）\n   - ExitCode非0 → 程序自身错误\n   - ExitCode=0:9(SIGKILL) → 被系统杀死（OOM或超时）\n\n4. 运行中但异常？\n   - GPU任务：在脚本中加入nvidia-smi检查\n   - 检查日志是否在更新：tail -f logs/*.out\n   - 检查运行时长是否合理",
+      "source_file": "slurm_command_reference.md",
+      "heading": "排查流程决策树"
+    }
+  ]
+}

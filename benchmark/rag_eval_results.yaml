@@ -1,0 +1,357 @@
+details:
+- hit: true
+  id: q_partition_01
+  question: 107平台有哪些分区？比赛用哪个？
+  rank: 1
+  top_results:
+  - file: 107_platform_guide.md
+    heading: 分区与QoS
+    score: 0.6309592723846436
+  - file: 107_platform_guide.md
+    heading: ''
+    score: 0.5693185329437256
+  - file: slurm_command_reference.md
+    heading: 107平台分区速查
+    score: 0.551316499710083
+- hit: true
+  id: q_partition_02
+  question: P107-RTX5090和P107-A100有什么区别？
+  rank: 2
+  top_results:
+  - file: slurm_command_reference.md
+    heading: 107平台QOS速查
+    score: 0.5762279033660889
+  - file: slurm_command_reference.md
+    heading: 107平台分区速查
+    score: 0.5289143323898315
+  - file: 107_platform_guide.md
+    heading: 分区与QoS
+    score: 0.5181459188461304
+- hit: true
+  id: q_partition_03
+  question: Students分区包含哪些节点？
+  rank: 1
+  top_results:
+  - file: scow_platform_guide.md
+    heading: 平台状态快照（2026-05-21）
+    score: 0.6825550198554993
+  - file: slurm_command_reference.md
+    heading: 107平台分区速查
+    score: 0.6536828279495239
+  - file: slurm_command_reference.md
+    heading: 107平台QOS速查
+    score: 0.5849496126174927
+- hit: true
+  id: q_qos_01
+  question: qos_p107-rtx5090最多能用几个GPU？
+  rank: 1
+  top_results:
+  - file: slurm_command_reference.md
+    heading: 107平台QOS速查
+    score: 0.6985489130020142
+  - file: 107_platform_guide.md
+    heading: 分区与QoS
+    score: 0.6363160610198975
+  - file: sbatch_scripting_guide.md
+    heading: 必须遵守的平台约束
+    score: 0.601317822933197
+- hit: true
+  id: q_qos_02
+  question: 怎么查看自己可用的QoS？
+  rank: 1
+  top_results:
+  - file: slurm_command_reference.md
+    heading: sacctmgr — 查看QOS和账户
+    score: 0.6310557723045349
+  - file: scow_platform_guide.md
+    heading: QOS资源配额
+    score: 0.574812114238739
+  - file: slurm_command_reference.md
+    heading: 107平台QOS速查
+    score: 0.5688457489013672
+- hit: true
+  id: q_qos_limit_01
+  question: 为什么报QOSMaxWallDurationPerJobLimit错误？
+  rank: 1
+  top_results:
+  - file: error_format_handbook.md
+    heading: QOS限制类错误（非INVALID_QOS）
+    score: 0.8177512288093567
+  - file: error_format_handbook.md
+    heading: INVALID_QOS — 无效QOS
+    score: 0.6938169002532959
+  - file: slurm_command_reference.md
+    heading: 107平台QOS速查
+    score: 0.6310684084892273
+- hit: true
+  id: q_qos_limit_02
+  question: QOSMaxCpuPerUserLimit是什么意思？
+  rank: 1
+  top_results:
+  - file: error_format_handbook.md
+    heading: QOS限制类错误（非INVALID_QOS）
+    score: 0.6605991125106812
+  - file: slurm_command_reference.md
+    heading: 107平台QOS速查
+    score: 0.6579382419586182
+  - file: scow_platform_guide.md
+    heading: QOS资源配额
+    score: 0.6255277991294861
+- hit: true
+  id: q_submit_01
+  question: 怎么写一个GPU训练的sbatch脚本？
+  rank: 5
+  top_results:
+  - file: sbatch_scripting_guide.md
+    heading: ''
+    score: 0.7170147895812988
+  - file: sbatch_scripting_guide.md
+    heading: 脚本基本结构
+    score: 0.6971302032470703
+  - file: scow_platform_guide.md
+    heading: 作业提交
+    score: 0.6947718858718872
+- hit: true
+  id: q_submit_02
+  question: sbatch脚本的基本结构是什么？
+  rank: 2
+  top_results:
+  - file: sbatch_scripting_guide.md
+    heading: ''
+    score: 0.7256098985671997
+  - file: sbatch_scripting_guide.md
+    heading: 脚本基本结构
+    score: 0.667500913143158
+  - file: 107_platform_guide.md
+    heading: 作业提交（sbatch）
+    score: 0.6534004807472229
+- hit: true
+  id: q_submit_03
+  question: SBATCH参数--gres=gpu:1是什么意思？
+  rank: 4
+  top_results:
+  - file: 107_platform_guide.md
+    heading: 作业提交（sbatch）
+    score: 0.6478587985038757
+  - file: slurm_command_reference.md
+    heading: ''
+    score: 0.6144530177116394
+  - file: sbatch_scripting_guide.md
+    heading: ''
+    score: 0.6065625548362732
+- hit: false
+  id: q_submit_04
+  question: 怎么提交数组作业？
+  rank: 0
+  top_results:
+  - file: scow_platform_guide.md
+    heading: 关键链接
+    score: 0.5374312400817871
+  - file: slurm_command_reference.md
+    heading: ''
+    score: 0.5007019639015198
+  - file: sbatch_scripting_guide.md
+    heading: ''
+    score: 0.4718957543373108
+- hit: false
+  id: q_submit_05
+  question: 怎么提交多节点MPI并行作业？
+  rank: 0
+  top_results:
+  - file: scow_platform_guide.md
+    heading: 关键链接
+    score: 0.6113559603691101
+  - file: slurm_command_reference.md
+    heading: ''
+    score: 0.5986629724502563
+  - file: slurm_command_reference.md
+    heading: SBATCH 参数详解
+    score: 0.5810898542404175
+- hit: true
+  id: q_submit_06
+  question: sbatch命令行参数会覆盖脚本里的#SBATCH吗？
+  rank: 1
+  top_results:
+  - file: slurm_command_reference.md
+    heading: sbatch — 提交批处理作业
+    score: 0.6846799850463867
+  - file: 107_platform_guide.md
+    heading: 作业提交（sbatch）
+    score: 0.6666852235794067
+  - file: sbatch_scripting_guide.md
+    heading: ''
+    score: 0.6548387408256531
+- hit: false
+  id: q_submit_07
+  question: 提交前需要检查什么？
+  rank: 0
+  top_results:
+  - file: scow_platform_guide.md
+    heading: 关键链接
+    score: 0.48825782537460327
+  - file: error_format_handbook.md
+    heading: ''
+    score: 0.48198336362838745
+  - file: 107_platform_guide.md
+    heading: 平台限制与注意事项
+    score: 0.4716033339500427
+- hit: true
+  id: q_err_partition
+  question: sbatch报invalid partition怎么办？
+  rank: 1
+  top_results:
+  - file: error_format_handbook.md
+    heading: INVALID_PARTITION — 无效分区
+    score: 0.7584391236305237
+  - file: error_format_handbook.md
+    heading: INVALID_QOS — 无效QOS
+    score: 0.7165589332580566
+  - file: error_format_handbook.md
+    heading: 错误格式匹配注意事项
+    score: 0.6434038877487183
+- hit: true
+  id: q_err_qos
+  question: Invalid qos specification是什么意思？
+  rank: 1
+  top_results:
+  - file: error_format_handbook.md
+    heading: INVALID_QOS — 无效QOS
+    score: 0.6766416430473328
+  - file: error_format_handbook.md
+    heading: QOS限制类错误（非INVALID_QOS）
+    score: 0.6028479337692261
+  - file: slurm_command_reference.md
+    heading: 107平台QOS速查
+    score: 0.5186730623245239
+- hit: true
+  id: q_err_workdir
+  question: 'chdir failed: No such file or directory怎么解决？'
+  rank: 1
+  top_results:
+  - file: error_format_handbook.md
+    heading: WORKDIR_NOT_FOUND — 工作目录失效
+    score: 0.5917596220970154
+  - file: error_format_handbook.md
+    heading: ENTRYPOINT_NOT_FOUND — 入口文件不存在
+    score: 0.49550318717956543
+  - file: error_format_handbook.md
+    heading: MODULE_NOT_FOUND — 模块不存在
+    score: 0.4877198338508606
+- hit: true
+  id: q_err_entrypoint
+  question: 'python: can''t open file是什么问题？'
+  rank: 1
+  top_results:
+  - file: error_format_handbook.md
+    heading: ENTRYPOINT_NOT_FOUND — 入口文件不存在
+    score: 0.5535846948623657
+  - file: error_format_handbook.md
+    heading: MODULE_NOT_FOUND — 模块不存在
+    score: 0.465404748916626
+  - file: sbatch_scripting_guide.md
+    heading: 提交前检查清单
+    score: 0.4362998604774475
+- hit: true
+  id: q_err_module
+  question: Unable to locate a modulefile怎么办？
+  rank: 1
+  top_results:
+  - file: error_format_handbook.md
+    heading: MODULE_NOT_FOUND — 模块不存在
+    score: 0.754778265953064
+  - file: 107_platform_guide.md
+    heading: 常见问题与排查
+    score: 0.5564823150634766
+  - file: error_format_handbook.md
+    heading: CONDA_ENV — Conda环境问题
+    score: 0.5345140695571899
+- hit: false
+  id: q_interactive_02
+  question: srun和sbatch有什么区别？
+  rank: 0
+  top_results:
+  - file: slurm_command_reference.md
+    heading: ''
+    score: 0.5994796752929688
+  - file: sbatch_scripting_guide.md
+    heading: ''
+    score: 0.5973402261734009
+  - file: 107_platform_guide.md
+    heading: 作业提交（sbatch）
+    score: 0.5640550851821899
+- hit: true
+  id: q_monitor_02
+  question: tmux怎么用？SSH断了怎么办？
+  rank: 1
+  top_results:
+  - file: 107_platform_guide.md
+    heading: 实用工具
+    score: 0.582764744758606
+  - file: scow_platform_guide.md
+    heading: 关键链接
+    score: 0.5292261838912964
+  - file: scow_platform_guide.md
+    heading: 命令行常用命令
+    score: 0.5210717916488647
+- hit: true
+  id: q_domain_01
+  question: 怎么用apptainer容器运行自己的软件？
+  rank: 5
+  top_results:
+  - file: scow_platform_guide.md
+    heading: 关键链接
+    score: 0.5305099487304688
+  - file: scow_platform_guide.md
+    heading: ''
+    score: 0.49243253469467163
+  - file: slurm_command_reference.md
+    heading: ''
+    score: 0.491197407245636
+- hit: true
+  id: q_domain_04
+  question: 物理化学模拟有什么注意事项？
+  rank: 1
+  top_results:
+  - file: scow_platform_guide.md
+    heading: 学科场景指南
+    score: 0.39944255352020264
+  - file: scow_platform_guide.md
+    heading: 关键链接
+    score: 0.38143908977508545
+  - file: sbatch_scripting_guide.md
+    heading: ''
+    score: 0.3799079358577728
+- hit: true
+  id: q_errformat_01
+  question: 107平台的报错格式和Slurm文档不一样怎么办？
+  rank: 2
+  top_results:
+  - file: error_format_handbook.md
+    heading: ''
+    score: 0.7728662490844727
+  - file: error_format_handbook.md
+    heading: 错误格式匹配注意事项
+    score: 0.7297897934913635
+  - file: scow_platform_guide.md
+    heading: 关键链接
+    score: 0.7139782905578613
+- hit: true
+  id: q_errformat_03
+  question: 脚本没有set -e会怎样？
+  rank: 1
+  top_results:
+  - file: sbatch_scripting_guide.md
+    heading: set -euo pipefail 的使用
+    score: 0.6921736001968384
+  - file: error_format_handbook.md
+    heading: ENTRYPOINT_NOT_FOUND — 入口文件不存在
+    score: 0.5011873245239258
+  - file: sbatch_scripting_guide.md
+    heading: 提交前检查清单
+    score: 0.47960221767425537
+summary:
+  elapsed_seconds: 81.4
+  hit_rate: 26.6%
+  hits: 21
+  mrr: '0.2171'
+  total: 79

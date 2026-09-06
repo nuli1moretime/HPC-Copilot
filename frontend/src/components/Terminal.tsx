@@ -12,6 +12,7 @@ export interface TerminalMessage {
 interface Props {
   messages: TerminalMessage[]
   onCommand: (cmd: string) => void
+  onPaste?: (text: string) => void
   connected?: boolean
 }
 
@@ -25,7 +26,7 @@ const ANSI = {
   reset: '\x1b[0m',
 }
 
-export default function Terminal({ messages, onCommand, connected = false }: Props) {
+export default function Terminal({ messages, onCommand, onPaste, connected = false }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const xtermRef = useRef<XTerm | null>(null)
   const inputBufferRef = useRef('')
@@ -118,6 +119,23 @@ export default function Terminal({ messages, onCommand, connected = false }: Pro
 
     // 处理用户输入
     term.onData((data) => {
+      // 多行粘贴检测：数据长度 >1 且包含换行符（区别于单次回车 data='\r'）
+      if (data.length > 1 && (data.includes('\r') || data.includes('\n'))) {
+        const text = data.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+        const lines = text.split('\n').filter((l) => l.trim())
+        if (lines.length > 1) {
+          for (const line of lines) {
+            term.write(line + '\r\n')
+          }
+          if (onPaste) {
+            onPaste(lines.join('\n'))
+          } else {
+            for (const line of lines) onCommand(line)
+          }
+          return
+        }
+      }
+
       const code = data.charCodeAt(0)
       const isWebshell = modeRef.current === 'webshell'
 
@@ -157,22 +175,29 @@ export default function Terminal({ messages, onCommand, connected = false }: Pro
     const pasteFromClipboard = async () => {
       try {
         const text = await navigator.clipboard.readText()
-        if (text) {
-          const lines = text.split('\n')
-          for (let i = 0; i < lines.length; i++) {
-            const line = lines[i].replace(/\r$/, '')
-            if (i > 0 && line.trim()) {
-              inputBufferRef.current += line
-              term.write(line)
-              const cmd = inputBufferRef.current
-              term.write('\r\n')
-              if (cmd.trim()) onCommand(cmd)
-              inputBufferRef.current = ''
-            } else {
-              inputBufferRef.current += line
-              term.write(line)
+        if (!text) return
+
+        const lines = text.split('\n').map((l) => l.replace(/\r$/, ''))
+        const isMultiLine = lines.filter((l) => l.trim()).length > 1
+
+        if (isMultiLine) {
+          // 多行粘贴：显示所有行，然后作为一整块发送到后端
+          for (const line of lines) {
+            term.write(line + '\r\n')
+          }
+          if (onPaste) {
+            onPaste(text)
+          } else {
+            // 降级：逐行发送（兼容无 onPaste 的旧调用方）
+            for (const line of lines) {
+              if (line.trim()) onCommand(line)
             }
           }
+        } else {
+          // 单行粘贴：填入输入缓冲区，等用户按回车
+          const line = lines[0] || ''
+          inputBufferRef.current += line
+          term.write(line)
         }
       } catch {
         // 剪贴板权限被拒绝时忽略
@@ -222,7 +247,7 @@ export default function Terminal({ messages, onCommand, connected = false }: Pro
       resizeObserver.disconnect()
       term.dispose()
     }
-  }, [onCommand])
+  }, [onCommand, onPaste])
 
   // 处理后端推送的消息
   useEffect(() => {

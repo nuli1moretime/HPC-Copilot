@@ -1,0 +1,231 @@
+# 第二批诊断规则的公开开发案例
+# 这些题目已用于规则开发，因此只能做回归测试，不能作为隐藏测试或最终竞赛成绩
+
+cases:
+  # ═══ DISK_QUOTA — 磁盘配额 ═══
+  - id: disk_quota_001
+    rule_id: disk_quota
+    expected_type: DISK_QUOTA
+    source: "写入文件时超出配额"
+    input: |
+      OSError: [Errno 122] Disk quota exceeded
+      Error writing checkpoint to /home/sa25232066/checkpoints/epoch5.pt
+
+  - id: disk_quota_002
+    rule_id: disk_quota
+    expected_type: DISK_QUOTA
+    source: "No space left（配额或磁盘满）"
+    input: |
+      cp: error writing '/home/sa25232066/data/output.tar': No space left on device
+      cp: failed to extend '/home/sa25232066/data/output.tar': No space left on device
+
+  - id: disk_quota_003
+    rule_id: disk_quota
+    expected_type: DISK_QUOTA
+    source: "conda 安装时配额不足"
+    input: |
+      Collecting package metadata (current_repodata.json): done
+      ERROR conda.core.link:_execute(700): An error occurred while installing package 'pytorch-2.1.0'.
+      OSError: [Errno 122] Disk quota exceeded
+
+  # ═══ PERMISSION_DENIED — 权限问题 ═══
+  - id: permission_001
+    rule_id: permission_denied
+    expected_type: PERMISSION_DENIED
+    source: "真实平台 (107.ustc.edu.cn 2026-08-27)"
+    input: |
+      Testing permission denied...
+      /var/spool/slurmd/job45841/slurm_script: line 9: /root/benchmark_should_fail.txt: Permission denied
+
+  - id: permission_002
+    rule_id: permission_denied
+    expected_type: PERMISSION_DENIED
+    source: "执行脚本无权限"
+    input: |
+      /var/spool/slurm/job5678/slurm_script: line 8: ./run_experiment.sh: Permission denied
+
+  - id: permission_003
+    rule_id: permission_denied
+    expected_type: PERMISSION_DENIED
+    source: "Python 写文件权限错误"
+    input: |
+      Traceback (most recent call last):
+        File "train.py", line 88, in <module>
+          torch.save(model.state_dict(), "/shared/models/best.pt")
+      PermissionError: [Errno 13] Permission denied: '/shared/models/best.pt'
+
+  # ═══ GPU_OOM — GPU 显存不足 ═══
+  - id: gpu_oom_001
+    rule_id: gpu_oom
+    expected_type: GPU_OOM
+    source: "PyTorch CUDA OOM"
+    input: |
+      torch.cuda.OutOfMemoryError: CUDA out of memory. Tried to allocate 2.00 GiB.
+      GPU 0 has a total capacity of 39.56 GiB of which 1.23 GiB is free.
+
+  - id: gpu_oom_002
+    rule_id: gpu_oom
+    expected_type: GPU_OOM
+    source: "cudaErrorMemoryAllocation"
+    input: |
+      RuntimeError: CUDA error: out of memory
+      CUDA error: cudaErrorMemoryAllocation
+
+  - id: gpu_oom_003
+    rule_id: gpu_oom
+    expected_type: GPU_OOM
+    source: "TensorFlow GPU OOM"
+    input: |
+      tensorflow.python.framework.errors_impl.ResourceExhaustedError:
+      OOM when allocating tensor with shape[32,512,512,3]
+      [_Derived_]  All 1 GPUs are allocated but 2 requested.
+
+  - id: gpu_oom_004
+    rule_id: gpu_oom
+    expected_type: GPU_OOM
+    source: "CUDA malloc 失败"
+    input: |
+      CUDA out of memory. Tried to allocate 4.00 GiB (GPU 0; 79.15 GiB total capacity;
+      74.32 GiB already allocated; 2.11 GiB free)
+
+  # ═══ NODE_FAIL — 节点故障 ═══
+  - id: node_fail_001
+    rule_id: node_fail
+    expected_type: NODE_FAIL
+    source: "Slurm NODE_FAIL 状态"
+    input: |
+      slurmstepd: error: Node failure on gpu-node-03
+      Job state changed to NODE_FAIL
+
+  - id: node_fail_002
+    rule_id: node_fail
+    expected_type: NODE_FAIL
+    source: "节点意外重启"
+    input: |
+      slurmstepd: error: Node gpu-node-01 unexpectedly rebooted
+      slurmstepd: error: Job 23456 terminated due to node failure
+
+  - id: node_fail_003
+    rule_id: node_fail
+    expected_type: NODE_FAIL
+    source: "batch step failure"
+    input: |
+      slurmstepd: error: Detected batch step failure
+      srun: error: gpu-node-02: task 0: Terminated (Node failure)
+
+  # ═══ PREEMPTED — 作业被抢占 ═══
+  - id: preempted_001
+    rule_id: preempted
+    expected_type: PREEMPTED
+    source: "高优先级作业抢占"
+    input: |
+      slurmstepd: error: Job 34567 preempted by higher priority job
+      Job state: PREEMPTED
+
+  - id: preempted_002
+    rule_id: preempted
+    expected_type: PREEMPTED
+    source: "squeue 显示 PREEMPTED"
+    input: |
+      JOBID PARTITION NAME USER STATE TIME NODES
+      34567 Students train.py sa25232066 PREEMPTED 0:45:12 1
+
+  # ═══ CONDA_ENV — Conda 环境问题 ═══
+  - id: conda_001
+    rule_id: conda_env
+    expected_type: CONDA_ENV
+    source: "真实平台 (107.ustc.edu.cn 2026-08-27)"
+    input: |
+      Testing conda without init...
+      /var/spool/slurmd/job45844/slurm_script: line 9: conda: command not found
+      Python 3.12.3
+
+  - id: conda_002
+    rule_id: conda_env
+    expected_type: CONDA_ENV
+    source: "conda activate 在脚本中失败"
+    input: |
+      CommandNotFoundError: Your shell has not been properly configured to use 'conda activate'.
+      To initialize your shell, run: $ conda init <SHELL_NAME>
+
+  - id: conda_003
+    rule_id: conda_env
+    expected_type: CONDA_ENV
+    source: "环境不存在"
+    input: |
+      EnvironmentNameNotFound: Could not find conda environment: myenv
+      Valid environments: base
+
+  # ═══ CUDA_DEVICE — GPU 设备/驱动错误 ═══
+  - id: cuda_device_001
+    rule_id: cuda_device
+    expected_type: CUDA_DEVICE
+    source: "无 CUDA 设备"
+    input: |
+      AssertionError: Torch not compiled with CUDA enabled
+      No CUDA-capable device is detected
+
+  - id: cuda_device_002
+    rule_id: cuda_device
+    expected_type: CUDA_DEVICE
+    source: "GPU 驱动不匹配"
+    input: |
+      RuntimeError: The NVIDIA driver on your system is too old (found version 11080).
+      Please update your GPU driver to a compatible version.
+
+  - id: cuda_device_003
+    rule_id: cuda_device
+    expected_type: CUDA_DEVICE
+    source: "GPU 被其他进程占用"
+    input: |
+      RuntimeError: CUDA error: all CUDA-capable devices are busy or unavailable
+      cudaErrorDevicesUnavailable
+
+  # ═══ INVALID_TIME — 时间格式错误 ═══
+  - id: invalid_time_001
+    rule_id: invalid_time
+    expected_type: INVALID_TIME
+    source: "sbatch 时间参数格式错"
+    input: |
+      sbatch: error: Invalid time limit specification: --time=2days
+
+  - id: invalid_time_002
+    rule_id: invalid_time
+    expected_type: INVALID_TIME
+    source: "无法分配资源（时间格式相关）"
+    input: |
+      sbatch: error: Batch job submission failed: Unable to allocate resources
+      sbatch: error: Invalid time limit specification
+
+  # ═══ DEPENDENCY — 作业依赖问题 ═══
+  - id: dependency_001
+    rule_id: dependency
+    expected_type: DEPENDENCY
+    source: "依赖作业已失败"
+    input: |
+      slurmstepd: error: Dependency failed: job 11111 did not complete successfully
+      Job 11112 cancelled due to dependency
+
+  - id: dependency_002
+    rule_id: dependency
+    expected_type: DEPENDENCY
+    source: "依赖链断裂"
+    input: |
+      sbatch: error: Batch job submission failed: Dependency satisfied but job 11111 already completed with error
+
+  # ═══ ACCOUNT — 账号/关联问题 ═══
+  - id: account_001
+    rule_id: account_issue
+    expected_type: ACCOUNT_ISSUE
+    source: "账号无权限"
+    input: |
+      sbatch: error: Batch job submission failed: Invalid account specification
+      Access denied for account 'research_group'
+
+  - id: account_002
+    rule_id: account_issue
+    expected_type: ACCOUNT_ISSUE
+    source: "association 限制"
+    input: |
+      sbatch: error: Batch job submission failed: Association not found
+      User sa25232066 is not associated with the requested account

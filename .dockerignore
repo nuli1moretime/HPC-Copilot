@@ -1,0 +1,14 @@
+node_modules
+__pycache__
+*.pyc
+.git
+data/
+benchmark/
+tests1
+*.tar
+*.zip
+.env
+venv
+frontend/node_modules
+frontend/dist
+.pytest_cache

@@ -1,0 +1,485 @@
+schema_version: 1
+suite_id: hpc-copilot-final-v1
+status: frozen
+description: >-
+  107算力平台项目组自建的冻结测试集，共30题。题目与开发集分离；从本文件冻结起，
+  本轮评测完成前不得再依据本题修改提示词、知识库、诊断规则或检索参数。
+cases:
+  # 平台问答：8题
+  - id: final_qa_001
+    category: platform_qa
+    prompt: 我不确定自己的账号能使用哪些分区和QoS，应该先查什么？
+    source:
+      type: official_doc
+      reference: docs/knowledge/slurm_command_reference.md#sacctmgr-查看QOS和账户
+    expected:
+      concept_groups:
+        - ['sacctmgr\s+show\s+assoc\s+user=\$USER', 'sacctmgr\s+show\s+assoc']
+        - ['QOS', 'QoS']
+      forbidden_patterns: ['随便.{0,8}填写.{0,8}(QOS|QoS)', '无需.{0,8}查看.{0,8}(QOS|QoS)']
+
+  - id: final_qa_002
+    category: platform_qa
+    prompt: 我想确认平台上到底有哪些可加载的软件模块，怎样查最合适？
+    source:
+      type: official_doc
+      reference: docs/knowledge/107_platform_guide.md#软件环境
+    expected:
+      concept_groups:
+        - ['module\s+avail']
+        - ['module\s+load']
+      forbidden_patterns: ['apt\s+install', 'sudo\s+apt']
+
+  - id: final_qa_003
+    category: platform_qa
+    prompt: 在平台上执行 apptainer pull docker://alpine:3.20 时提示 lookup registry-1.docker.io 失败，可以一直重试吗？
+    source:
+      type: real_platform_log
+      reference: 用户在107平台采集的Apptainer Docker Hub DNS错误，已脱敏
+    expected:
+      concept_groups:
+        - ['DNS', '外网', '网络']
+        - ['不要.{0,8}反复重试', '不.{0,6}反复重试']
+        - ['\.sif', '可联网环境', '管理员']
+      forbidden_patterns: ['容器.{0,8}绕过.{0,8}Slurm', 'sudo\s+apptainer']
+
+  - id: final_qa_004
+    category: platform_qa
+    prompt: 我在登录节点输入 nvidia-smi，发现没有GPU。这是否说明我的GPU作业不能运行？
+    source:
+      type: official_doc
+      reference: docs/knowledge/sbatch_scripting_guide.md#登录节点无GPU
+    expected:
+      concept_groups:
+        - ['登录节点.{0,8}(没有|无).{0,8}GPU', '登录节点.*nvidia-smi']
+        - ['计算节点', '作业']
+      forbidden_patterns: ['GPU作业.{0,8}不能运行', '必须在登录节点.{0,8}训练']
+
+  - id: final_qa_005
+    category: platform_qa
+    prompt: 仿真结果能不能长期只写到 /tmp 目录？
+    source:
+      type: official_doc
+      reference: docs/knowledge/107_platform_guide.md#存储与数据
+    expected:
+      concept_groups:
+        - ['/tmp']
+        - ['本地临时', '节点重启', '会清']
+        - ['/public', '/home', '共享存储']
+      forbidden_patterns: ['/tmp.{0,12}(长期|永久).{0,12}(保存|存放)']
+
+  - id: final_qa_006
+    category: platform_qa
+    prompt: 正式提交前，我只想检查脚本能否通过调度校验、不真的运行，该用什么办法？
+    source:
+      type: official_doc
+      reference: docs/knowledge/slurm_command_reference.md#sbatch-提交批处理作业
+    expected:
+      concept_groups:
+        - ['sbatch\s+--test-only']
+        - ['不.{0,8}(实际运行|真的运行)', '仅.{0,8}(测试|检查)']
+      forbidden_patterns: ['srun.{0,20}--test-only']
+
+  - id: final_qa_007
+    category: platform_qa
+    prompt: Students 分区使用 qos_stu_default 时，申请1张GPU、4个CPU并设置6小时，会有什么风险？
+    source:
+      type: official_doc
+      reference: docs/knowledge/slurm_command_reference.md#107平台QOS速查
+    expected:
+      concept_groups:
+        - ['qos_stu_default']
+        - ['4.{0,4}(小时|h)', '04:00:00']
+        - ['6.{0,4}(小时|h)', '06:00:00']
+      forbidden_patterns: ['6.{0,6}(小时|h).{0,12}(完全|肯定).{0,12}允许']
+
+  - id: final_qa_008
+    category: platform_qa
+    prompt: 我在登录终端里 echo $SLURM_JOB_ID 没有输出，是平台坏了吗？
+    source:
+      type: official_doc
+      reference: docs/knowledge/slurm_command_reference.md#Slurm环境变量仅作业脚本内有效
+    expected:
+      concept_groups:
+        - ['仅.{0,8}(作业脚本|sbatch).{0,8}有效', '(作业脚本|sbatch).{0,8}内']
+        - ['登录节点', '登录终端']
+      forbidden_patterns: ['平台坏', '重新安装Slurm']
+
+  # 命令解释：6题
+  - id: final_cmd_001
+    category: command_explanation
+    prompt: 我要按节点查看 Students 分区的状态，给出命令并解释 -N 和 -p 的含义。
+    source:
+      type: official_doc
+      reference: docs/knowledge/slurm_command_reference.md#sinfo-查看集群与分区状态
+    expected:
+      concept_groups:
+        - ['sinfo\s+-N\s+-p\s+Students', 'sinfo\s+-p\s+Students\s+-N']
+        - ['-N.{0,12}(节点|逐行)', '(节点|逐行).{0,12}-N']
+        - ['-p.{0,12}(分区|Students)', '(分区|Students).{0,12}-p']
+      forbidden_patterns: ['squeue\s+-N']
+
+  - id: final_cmd_002
+    category: command_explanation
+    prompt: 作业 61888 一直排队，我想看它的完整配置、资源请求和 Reason，使用什么命令？
+    source:
+      type: official_doc
+      reference: docs/knowledge/slurm_command_reference.md#scontrol-查看详情
+    expected:
+      concept_groups:
+        - ['scontrol\s+show\s+job\s+61888']
+        - ['Reason']
+        - ['ReqTRES', '资源']
+      forbidden_patterns: ['scancel\s+61888']
+
+  - id: final_cmd_003
+    category: command_explanation
+    prompt: 怎样取消我自己所有仍在排队的作业？请解释筛选条件。
+    source:
+      type: official_doc
+      reference: docs/knowledge/slurm_command_reference.md#scancel-取消作业
+    expected:
+      concept_groups:
+        - ['scancel\s+-u\s+\$USER\s+-t\s+PENDING', 'scancel\s+-t\s+PENDING\s+-u\s+\$USER']
+        - ['自己', '当前用户', '\$USER']
+        - ['PENDING', '排队']
+      forbidden_patterns: ['scancel\s+-a', 'scancel\s+--all']
+
+  - id: final_cmd_004
+    category: command_explanation
+    prompt: 如何查询作业 61888 的历史状态和退出码？如果 sacct 没结果，还要看什么？
+    source:
+      type: official_doc
+      reference: docs/knowledge/slurm_command_reference.md#sacct-查看作业历史
+    expected:
+      concept_groups:
+        - ['sacct']
+        - ['ExitCode', '退出码']
+        - ['日志', '输出文件', 'scontrol']
+      forbidden_patterns: ['sacct.{0,20}(一定|完全).{0,20}可靠']
+
+  - id: final_cmd_005
+    category: command_explanation
+    prompt: 我想在一个已经分配的作业里把 $SLURM_JOB_NODELIST 展开为实际主机名，命令是什么？
+    source:
+      type: official_doc
+      reference: docs/knowledge/slurm_command_reference.md#scontrol-查看详情
+    expected:
+      concept_groups:
+        - ['scontrol\s+show\s+hostnames\s+\$SLURM_JOB_NODELIST']
+        - ['节点列表', '主机名']
+      forbidden_patterns: ['hostname\s+\$SLURM_JOB_NODELIST']
+
+  - id: final_cmd_006
+    category: command_explanation
+    prompt: squeue 中某个作业显示 PD，Reason 是 Dependency，这表示什么，下一步先查哪里？
+    source:
+      type: official_doc
+      reference: docs/knowledge/slurm_command_reference.md#squeue-查看作业队列
+    expected:
+      concept_groups:
+        - ['依赖', '前置作业']
+        - ['未完成', '失败']
+        - ['scontrol\s+show\s+job', '检查.{0,8}依赖作业']
+      forbidden_patterns: ['立刻.{0,8}增加GPU']
+
+  # 作业脚本：8题
+  - id: final_script_001
+    category: script_generation
+    prompt: >-
+      只输出一份可直接保存为 submit.sh 的完整脚本：在107平台 Students 分区，以 qos_stu_default
+      申请1个CPU、最长3分钟，创建 logs 目录，输出当前工作目录，并用 Python 计算 1 到 50 的平方和。
+    source:
+      type: official_doc
+      reference: docs/knowledge/sbatch_scripting_guide.md#最小测试脚本
+    expected:
+      concept_groups: []
+      required_patterns:
+        - '^\s*#!/bin/bash'
+        - '#SBATCH\s+(?:-p\s+Students|--partition(?:=|\s+)Students)'
+        - '#SBATCH\s+--qos(?:=|\s+)qos_stu_default'
+        - '#SBATCH\s+(?:-c|--cpus-per-task(?:=|\s+))\s*1'
+        - '#SBATCH\s+(?:-t|--time(?:=|\s+))\s*00:03:00'
+        - 'mkdir\s+-p\s+logs'
+        - '\b(pwd|\$SLURM_SUBMIT_DIR)\b'
+        - 'sum\s*\(\s*i\s*\*\s*i\s+for\s+i\s+in\s+range\s*\(\s*1\s*,\s*51\s*\)\s*\)'
+      forbidden_patterns: ['sudo\s', 'P107-V100']
+
+  - id: final_script_002
+    category: script_generation
+    prompt: >-
+      只输出完整 submit.sh：在 P107-A100 分区申请单张GPU，QoS 使用 qos_p107-a100，最长10分钟；
+      创建 logs 目录，加载 cuda/13.0，先运行 nvidia-smi，再运行当前目录的 gpu_check.py。
+    source:
+      type: official_doc
+      reference: docs/knowledge/sbatch_scripting_guide.md#GPU相关注意事项
+    expected:
+      concept_groups: []
+      required_patterns:
+        - '^\s*#!/bin/bash'
+        - '#SBATCH\s+(?:-p\s+P107-A100|--partition(?:=|\s+)P107-A100)'
+        - '#SBATCH\s+--qos(?:=|\s+)qos_p107-a100'
+        - '#SBATCH\s+--gres(?:=|\s+)gpu(?::A100)?:1'
+        - '#SBATCH\s+(?:-t|--time(?:=|\s+))\s*00:10:00'
+        - 'mkdir\s+-p\s+logs'
+        - 'module\s+load\s+cuda/13\.0'
+        - 'nvidia-smi'
+        - 'python(?:3)?\s+gpu_check\.py'
+      forbidden_patterns: ['qos_p107-rtx5090', 'sudo\s']
+
+  - id: final_script_003
+    category: script_generation
+    prompt: >-
+      为107平台写一份只含脚本的数组作业：Students 分区、qos_stu_default、1个CPU、运行不超过5分钟，
+      创建 logs 目录，数组编号 0 到 2，并让每个任务执行 python3 sweep.py --seed $SLURM_ARRAY_TASK_ID。
+    source:
+      type: official_doc
+      reference: docs/knowledge/107_platform_guide.md#数组作业
+    expected:
+      concept_groups: []
+      required_patterns:
+        - '^\s*#!/bin/bash'
+        - '#SBATCH\s+(?:-p\s+Students|--partition(?:=|\s+)Students)'
+        - '#SBATCH\s+--qos(?:=|\s+)qos_stu_default'
+        - '#SBATCH\s+--array(?:=|\s+)0-2'
+        - 'mkdir\s+-p\s+logs'
+        - 'python3?\s+sweep\.py\s+--seed\s+\$SLURM_ARRAY_TASK_ID'
+      forbidden_patterns: ['for\s+seed\s+in', 'sudo\s']
+
+  - id: final_script_004
+    category: script_generation
+    prompt: >-
+      只输出完整脚本：我要在 Students 分区运行 analysis.py，使用 qos_stu_cpu_long、4个CPU、最长1小时。
+      标准输出和错误输出分别写入 logs，文件名中要带作业名和作业号，提交目录必须明确。
+    source:
+      type: official_doc
+      reference: docs/knowledge/sbatch_scripting_guide.md#输出文件路径
+    expected:
+      concept_groups: []
+      required_patterns:
+        - '^\s*#!/bin/bash'
+        - '#SBATCH\s+(?:-p\s+Students|--partition(?:=|\s+)Students)'
+        - '#SBATCH\s+--qos(?:=|\s+)qos_stu_cpu_long'
+        - '#SBATCH\s+(?:-c|--cpus-per-task(?:=|\s+))\s*4'
+        - '#SBATCH\s+(?:-t|--time(?:=|\s+))\s*01:00:00'
+        - '#SBATCH\s+(?:-o|--output(?:=|\s+))\s*logs/.+%x.+%j'
+        - '#SBATCH\s+(?:-e|--error(?:=|\s+))\s*logs/.+%x.+%j'
+        - 'mkdir\s+-p\s+logs'
+        - '(cd\s+\$SLURM_SUBMIT_DIR|cd\s+"?\$SLURM_SUBMIT_DIR"?)'
+        - 'python(?:3)?\s+analysis\.py'
+      forbidden_patterns: ['cd\s+/tmp', 'sudo\s']
+
+  - id: final_script_005
+    category: script_generation
+    prompt: >-
+      只输出完整 submit.sh：在 P107-RTX5090 上以 qos_p107-rtx5090 申请1张GPU，最长8分钟，
+      创建 logs 目录，加载 cuda/13.0，用 nvcc 编译 vector_add.cu 为 vector_add，然后执行它。
+    source:
+      type: official_doc
+      reference: docs/knowledge/sbatch_scripting_guide.md#GPU相关注意事项
+    expected:
+      concept_groups: []
+      required_patterns:
+        - '^\s*#!/bin/bash'
+        - '#SBATCH\s+(?:-p\s+P107-RTX5090|--partition(?:=|\s+)P107-RTX5090)'
+        - '#SBATCH\s+--qos(?:=|\s+)qos_p107-rtx5090'
+        - '#SBATCH\s+--gres(?:=|\s+)gpu(?::5090)?:1'
+        - 'module\s+load\s+cuda/13\.0'
+        - 'nvcc\s+vector_add\.cu\s+-o\s+vector_add'
+        - '(\./vector_add|srun\s+\./vector_add)'
+        - 'mkdir\s+-p\s+logs'
+      forbidden_patterns: ['qos_p107-a100', 'cuda/12\.1', 'sudo\s']
+
+  - id: final_script_006
+    category: script_generation
+    prompt: >-
+      只输出一份完整脚本：在 P107-RTX5090 分区用 qos_p107-rtx5090 跑一个2进程的MPI教学程序 mpi_hello，
+      最长10分钟，创建 logs 目录，加载 mpi/latest，并用 srun 启动程序。
+    source:
+      type: official_doc
+      reference: docs/knowledge/sbatch_scripting_guide.md#多节点MPI并行作业
+    expected:
+      concept_groups: []
+      required_patterns:
+        - '^\s*#!/bin/bash'
+        - '#SBATCH\s+(?:-p\s+P107-RTX5090|--partition(?:=|\s+)P107-RTX5090)'
+        - '#SBATCH\s+--qos(?:=|\s+)qos_p107-rtx5090'
+        - '#SBATCH\s+(?:-n|--ntasks(?:=|\s+))\s*2'
+        - 'module\s+load\s+mpi/latest'
+        - 'srun\s+\./mpi_hello'
+        - 'mkdir\s+-p\s+logs'
+      forbidden_patterns: ['mpirun\s+.*mpi_hello', 'sudo\s']
+
+  - id: final_script_007
+    category: script_generation
+    prompt: >-
+      只输出完整脚本：在 Students 分区、qos_stu_default 下运行一个5分钟以内的Python环境自检，
+      创建 logs 目录，打印 Python 版本，并验证能 import encodings；不要使用 conda，也不要设置 PYTHONHOME。
+    source:
+      type: real_platform_log
+      reference: 用户在107平台作业中采集的PYTHONHOME导致encodings缺失问题，已脱敏
+    expected:
+      concept_groups: []
+      required_patterns:
+        - '^\s*#!/bin/bash'
+        - '#SBATCH\s+(?:-p\s+Students|--partition(?:=|\s+)Students)'
+        - '#SBATCH\s+--qos(?:=|\s+)qos_stu_default'
+        - 'mkdir\s+-p\s+logs'
+        - 'python3?\s+--version'
+        - 'python3?\s+-c\s+["\x27]import\s+encodings'
+      forbidden_patterns: ['conda\s+activate', 'PYTHONHOME', 'sudo\s']
+
+  - id: final_script_008
+    category: script_generation
+    prompt: >-
+      只输出完整脚本：在 Students 分区使用 qos_stu_default、1个CPU、最长10分钟，创建 logs 目录，
+      加载 apptainer/1.4.5，并通过 apptainer exec ~/images/demo.sif python3 app.py 运行已有镜像中的程序。
+    source:
+      type: official_doc
+      reference: docs/knowledge/107_platform_guide.md#Apptainer容器
+    expected:
+      concept_groups: []
+      required_patterns:
+        - '^\s*#!/bin/bash'
+        - '#SBATCH\s+(?:-p\s+Students|--partition(?:=|\s+)Students)'
+        - '#SBATCH\s+--qos(?:=|\s+)qos_stu_default'
+        - '#SBATCH\s+(?:-c|--cpus-per-task(?:=|\s+))\s*1'
+        - 'mkdir\s+-p\s+logs'
+        - 'module\s+load\s+apptainer/1\.4\.5'
+        - 'apptainer\s+exec\s+~/images/demo\.sif\s+python3\s+app\.py'
+      forbidden_patterns: ['apptainer\s+pull\s+docker://', 'sudo\s']
+
+  # 故障诊断：8题
+  - id: final_diag_001
+    category: diagnosis
+    prompt: |-
+      请判断下面提交为什么失败，并给出最短的排查命令：
+      sbatch: error: invalid partition specified: DO_NOT_EXIST
+      sbatch: error: Batch job submission failed: Invalid partition name specified
+    source:
+      type: real_platform_log
+      reference: docs/knowledge/error_format_handbook.md#INVALID_PARTITION-无效分区
+    expected:
+      error_type: INVALID_PARTITION
+      label_patterns: ['INVALID_PARTITION', '无效.{0,8}分区', '分区.{0,8}(不存在|拼写)']
+      concept_groups:
+        - ['sinfo', 'scontrol\s+show\s+part']
+        - ['DO_NOT_EXIST', '分区名']
+      forbidden_patterns: ['重新安装Slurm', '增加显存']
+
+  - id: final_diag_002
+    category: diagnosis
+    prompt: |-
+      作业一开始就失败，日志如下。请诊断并给出重新提交前要做的事：
+      slurmstepd: error: getcwd failed: No such file or directory
+      slurmstepd: error: Unable to set working directory
+    source:
+      type: synthetic_variant
+      reference: docs/knowledge/error_format_handbook.md#WORKDIR_NOT_FOUND-工作目录失效
+    expected:
+      error_type: WORKDIR_NOT_FOUND
+      label_patterns: ['WORKDIR_NOT_FOUND', '(工作目录|当前目录).{0,8}(失效|不存在)', 'getcwd']
+      concept_groups:
+        - ['cd\s+\$HOME', '切换.{0,8}(存在|有效).{0,8}目录']
+        - ['pwd', 'ls\s+-ld']
+      forbidden_patterns: ['增加GPU', '重新安装Python']
+
+  - id: final_diag_003
+    category: diagnosis
+    prompt: |-
+      下面的脚本环境错误该怎么处理？
+      ERROR: Unable to locate a modulefile for 'cuda/99.99'
+    source:
+      type: real_platform_log
+      reference: docs/knowledge/error_format_handbook.md#MODULE_NOT_FOUND-模块不存在
+    expected:
+      error_type: MODULE_NOT_FOUND
+      label_patterns: ['MODULE_NOT_FOUND', '模块.{0,8}(不存在|找不到)', 'modulefile']
+      concept_groups:
+        - ['module\s+avail']
+        - ['cuda/99\.99', '正确.{0,8}(模块|版本)']
+      forbidden_patterns: ['sudo\s+apt', '增加内存']
+
+  - id: final_diag_004
+    category: diagnosis
+    prompt: |-
+      训练保存checkpoint时报错，请分类并说明优先排查什么：
+      OSError: [Errno 122] Disk quota exceeded
+      Error writing checkpoint to /home/user/checkpoints/epoch5.pt
+    source:
+      type: synthetic_variant
+      reference: docs/knowledge/error_format_handbook.md#DISK_QUOTA-磁盘配额不足
+    expected:
+      error_type: DISK_QUOTA
+      label_patterns: ['DISK_QUOTA', '磁盘配额', 'Disk quota exceeded']
+      concept_groups:
+        - ['quota', 'df\s+-h']
+        - ['清理', '删除.{0,8}(旧|无用)', '释放空间']
+      forbidden_patterns: ['增加GPU', '重新安装CUDA']
+
+  - id: final_diag_005
+    category: diagnosis
+    prompt: |-
+      程序写结果失败：
+      /var/spool/slurmd/job45841/slurm_script: line 9: /root/result.txt: Permission denied
+    source:
+      type: real_platform_log
+      reference: docs/knowledge/error_format_handbook.md#PERMISSION_DENIED-权限问题
+    expected:
+      error_type: PERMISSION_DENIED
+      label_patterns: ['PERMISSION_DENIED', '权限', 'Permission denied']
+      concept_groups:
+        - ['/root']
+        - ['/home', '自己的目录', '有权限']
+      forbidden_patterns: ['sudo\s+', 'chmod\s+777\s+/root']
+
+  - id: final_diag_006
+    category: diagnosis
+    prompt: |-
+      深度学习作业中断，日志最后是：
+      torch.cuda.OutOfMemoryError: CUDA out of memory. Tried to allocate 2.00 GiB.
+      GPU 0 has a total capacity of 39.56 GiB of which 1.23 GiB is free.
+    source:
+      type: synthetic_variant
+      reference: docs/knowledge/error_format_handbook.md#GPU_OOM-GPU显存不足
+    expected:
+      error_type: GPU_OOM
+      label_patterns: ['GPU_OOM', '(GPU|CUDA).{0,8}(显存|内存).{0,8}不足', 'CUDA out of memory']
+      concept_groups:
+        - ['batch.?size', '批次']
+        - ['减小', '降低']
+      forbidden_patterns: ['磁盘配额不足', '重新安装Slurm']
+
+  - id: final_diag_007
+    category: diagnosis
+    prompt: |-
+      批处理脚本中的环境激活失败：
+      /var/spool/slurmd/job45844/slurm_script: line 9: conda: command not found
+      Python 3.12.3
+    source:
+      type: real_platform_log
+      reference: docs/knowledge/error_format_handbook.md#CONDA_ENV-Conda环境问题
+    expected:
+      error_type: CONDA_ENV
+      label_patterns: ['CONDA_ENV', 'conda.{0,8}(找不到|不可用)', 'conda: command not found']
+      concept_groups:
+        - ['module\s+load\s+miniconda/py312']
+        - ['conda\.sh', 'source']
+      forbidden_patterns: ['sudo\s+apt', 'export\s+PYTHONHOME']
+
+  - id: final_diag_008
+    category: diagnosis
+    prompt: |-
+      依赖作业提交后被取消：
+      slurmstepd: error: Dependency failed: job 11111 did not complete successfully
+      Job 11112 cancelled due to dependency
+    source:
+      type: synthetic_variant
+      reference: docs/knowledge/error_format_handbook.md#DEPENDENCY-作业依赖问题
+    expected:
+      error_type: DEPENDENCY
+      label_patterns: ['DEPENDENCY', '依赖.{0,8}(失败|问题)', 'Dependency failed']
+      concept_groups:
+        - ['11111', '前置作业']
+        - ['scontrol\s+show\s+job', 'sacct', '检查.{0,8}(状态|日志)']
+      forbidden_patterns: ['立刻.{0,8}增加GPU', '重新安装Slurm']

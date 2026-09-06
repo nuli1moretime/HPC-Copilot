@@ -4,15 +4,11 @@ Agent 全程处于监听状态，当检测到终端输出中包含已知错误�
 自动触发诊断并通知前端（推送到对话面板）。
 """
 
-import sys
 from pathlib import Path
 from typing import Optional
 
-# 确保能导入 core 模块
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from core.diagnostics import DiagnosticsEngine
-from core.models import DiagnosisResult, ErrorType
+from ..core.diagnostics import DiagnosticsEngine
+from ..core.models import DiagnosisResult, ErrorType
 
 
 class AgentMonitor:
